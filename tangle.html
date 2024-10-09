@@ -1,0 +1,429 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Tangle in HTML</title>
+  </head>
+  <body>
+    <h1>Tangle in HTML</h1>
+    <p>
+      We are to improve the code given by <a href="http://www.axiom-developer.org/axiom-website/\litprog.html">
+      Tim Daly</a>.
+    </p>
+
+    <h2>Why HTML?</h2>
+    <p>
+      The main reason is that the HTML file can be displayed directly in a browser.
+      So, there is no need to weave.
+    </p>
+    <p>
+      Yet another benefit is that HTML (or XML) provides a standard for markup languages.
+      Any other markup formats (such as markdown) can be safely converted to HTML.
+    </p>
+
+    <h2>Design of Tangle</h2>
+    <p>
+      Let <code>source.html</code> be a HTML file containing codes to be tangled.
+      For example, if we implement an ANSI C code with the chunk name "hello.c":
+    </p>
+    <pre>
+      &lt;pre id="hello.c"&gt;
+        #include &lt;stdio.h&gt;
+        int main() {
+          printf("Hello, world!\n");
+          return 0;
+        }
+      &lt;/pre&gt;
+    </pre>
+    <p>
+      To tangle, run <code>tangle htmlfile chunkname</code> in command line. The
+      <code>tangle</code> will search for the HTML elements with id "chunkname"
+      and output the content in order.
+    </p>
+    <p>
+      In the previous example, the HTML file is <code>source.html</code> and the chunck name is
+      <code>hello.c</code>. Thus,
+    </p>
+    <pre>
+      tangle source.html hello.c > hello.c
+    </pre>
+    <p>
+      We can extend it to be more general. Namely,
+    </p>
+    <pre>
+      &lt;pre id="hello.c"&gt;
+        @{include}
+        int main() {
+          @{say hello}
+          return 0;
+        }
+      &lt;/pre&gt;
+    </pre>
+    <p>wherein the chunk "include" is</p>
+    <pre>
+      &lt;pre id="include"&gt;
+        #include &lt;stdio.h&gt;
+      &lt;/pre&gt;
+    </pre>
+    <p>and the chunck "say hello":</p>
+    <pre>
+      &lt;pre id="say hello"&gt;
+        printf("Hello, world!\n");
+      &lt;/pre&gt;
+    </pre>
+    <p>
+      There are many choices for indicating a chunk. For example, <code>CWEB</code> uses
+      <code>@&lt;chunkname@&gt;</code>. But repeatedly typing <code>&amp;lt;</code> and
+      <code>&amp;gt;</code> would be tedious. Thus, we use <code>@{chunkname}</code> as
+      a simplifed version (also employed by <a href="https://github.com/zyedidia/Literate">zyedidia</a>).
+      We believe that there is no piece of code happen to be like <code>@{a string}</code>
+      in any programming language. And if there is, we can simply extend this program to
+      be compatible with other choices.
+    </p>
+    <p>
+      There can be multiple chunks sharing the same chunk name. For example,
+    </p>
+    <pre>
+      &lt;pre id="somename"&gt;
+         the first part of a function
+      &lt;/pre&gt;
+      some explanation
+      &lt;pre id="somename"&gt;
+         the next part of the function
+      &lt;/pre&gt;
+      more explanation
+    </pre>
+    <p>
+      will be tangled as:
+    </p>
+    <pre>
+      the first part of a function
+      the next part of the function
+    </pre>
+
+    <h2>Implementation Tangle in C</h2>
+    <p>
+      We follow the implementation by Tim, and modify some parts of it for our
+      extention.
+    </p>
+
+    <h3>The Main Function</h3>
+    <p>
+      Recall the command that tangles a source file:
+    </p>
+    <pre>
+      tangle source.html chunkname
+    </pre>
+    <p>
+      The program first reads the source file into RAM. And then searching for the
+      HTML elements with id <code>chunkname</code>, as the root chunk. There may be
+      multiple such elements. Then, recursively find all the chunks that are employed
+      by the root chunk, and print all these in order. So, the main function has the
+      structure:
+    </p>
+    <pre id="tangle.c">
+      @{include}
+      @{macro}
+
+      @{global variable}
+
+      int main(int argc, char* argv[]) {
+        if (argc != 2) { 
+          perror("Usage: tangle filename chunkname");
+          exit(-1);
+        }
+        @{read into RAM}
+        @{unescape HTML}
+        @{get chunk}
+        @{cleanup}
+        return 0;
+      }
+    </pre>
+
+    <h3>Read into RAM</h3>
+    <p>
+      We first read the HTML file into RAM. A buffer is used for holding the file.
+      The buffer size shall be the file size, which is obtained by <code>fstat</code>.
+    </p>
+    <p>
+      We have to remind the users if the inputs are incorrect. We directly follow
+      Tim's implementation.
+    </p>
+    <pre id="global variable">
+      /* a memory mapped buffer copy of the file */
+      char *buffer;
+      int buffer_size;
+      int file_handle;
+    </pre>
+    <pre id="read into RAM">
+      /* Read into RAM */
+      struct stat file_stat;
+      file_handle = open(argv[1], O_RDONLY);
+      if (file_handle == -1) {
+        perror("Error opening file for reading");
+        exit(-2);
+      }
+      if (fstat(file_handle, &file_stat) < 0) {
+        perror("Error getting input file size");
+        exit(-3);
+      }
+      buffer_size = (int)file_stat.st_size;
+      buffer = (char*)malloc(buffer_size);
+      read(file_handle, buffer, buffer_size);
+    </pre>
+    
+    <h3>Unescape HTML</h3>
+    <p>TODO</p>
+    <pre id="unescape HTML">
+      /* Unescape HTML */
+      int point = 0;
+      int mark = 0;
+      for(point = 0; point < buffer_size;) {
+        if ((buffer[point] == '&') &&
+            (strncmp(&buffer[point+1], "lt;", 3) == 0)) {
+          buffer[mark++] = '<';
+          point = point + 4;  
+        } else
+        if ((buffer[point] == '&') &&
+            (strncmp(&buffer[point+1], "gt;", 3) == 0)) {
+          buffer[mark++] = '>';
+          point = point + 4;  
+        } else
+          buffer[mark++] = buffer[point++]; 
+      }
+      buffer_size = mark;
+    </pre>
+
+    <h3>Get Chuck</h3>
+    <p>
+      Get chunk is the most complicated part of the program. We have to find the
+      HTML elements that has a given id, and print its content.
+    </p>
+    <p>
+      We move in the buffer from begin to end. If 1) we find an HTML element
+      with the given id (chunk name), then 2) we jump to its content and
+      then 3) move on while printing its content, until 4) either we arrive
+      at the end of the element, or 5) we find another chunk to be printed
+      before going on with the current one. In the first case, we
+      stop printing and continue moving in the buffer til its end.
+    </p>
+    <p>
+      In the later case, we have to cache the current information into a stack,
+      and redo the whole process, but with the new chunk name. After finishing
+      the process for the new chunk, we have to restore the old information and
+      continue the previous printing. So, we implement the process recursively.
+      The information to be cached contains the current position in the buffer,
+      and nothing else.
+    </p>
+    <pre id="get chunk">
+      void get_chunk(char* chunk_name) {
+        int chunk_name_len = strlen(chunk_name);
+
+        int position = 0;
+        int tag = 0;
+        int found = 0;
+        int printing = 0;
+        while (position < buffer_size) {
+          if (printing == 0) {
+            @{find_chunk}
+            if (found == 1) {
+              @{jump to the next line}
+            } else {
+              position++;
+            }
+          } else if ()
+            
+            if (strncmp(&buffer[position], "@{", 2) == 0)
+            printf("%c", buffer[i]);
+          }
+        }
+
+      }
+    </pre>
+
+    <p>
+      To find the HTML element with the given id, we use the function <code>find_chunk</code>.
+      It searches for the regex pattern <code>&lt;[a-z]+ id="chunkname"</code>.
+      Notice that the HTML (in buffer) has been unescaped.
+    </p>
+    <pre id="find chunk">
+      int find_chunk(char* chunk_name) {
+        int tag = 0;
+        int chunk_name_len = strlen(chunk_name);
+        for (int i = 0; i < buffer_size - 4 - chunk_name_len; i++) {
+          /* buffer[i+1] in [a-z] */
+          if ((buffer[i] == '<') && (buffer[i+1] >= 97) && (buffer[i+1] <= 122)) {
+            tag = 1;
+          } else if (
+            (tag == 1) &&
+            (strncmp(&buffer[i], "id=\"", 4) == 0) &&
+            (strncmp(&buffer[i+4], chunk_name, chunk_name_len) == 0) &&
+            (strncmp(&buffer[i+4+chunk_name_len], "\"", 1) == 0)
+          ) {
+            return 1;
+          } else if ((tag == 1) && (buffer[i] == '>')) {
+            tag = 0;
+          }
+        }
+        return 0;
+      }
+    </pre>
+    <p>
+      Once we have found the chunk, we jump to the content of the HTML element.
+      We simply jump to the next line. It returns -1 if there is no next line.
+    </p>
+    <pre id="jump to the next line">
+      int jump_to_next_line() {
+        int i = 0;
+        while ((buffer[i] != '\n') && (i < buffer_size - 1)) i++;
+        return i + 1;
+      }
+    </pre>
+    <p>
+      We print the content of the HTML element until we encounter a new chunk.
+      We return the index of the next line.
+    </p>
+    <pre id="print content">
+      while ((buffer[i] != '\n') && (i < buffer_size - 1)) i++;
+      i++;
+    </pre>
+    <p>
+      While printing the content, we may encounter a new chunk.
+    </p>
+    <pre id="print content">
+      void print_content(int start) {
+        int i = start;
+        while (content_end(i) == 0) {
+          if (found_inline_chunk(i) == 1) {
+          } else {
+            printf("%c", buffer[i]);
+          }
+          i++;
+          }
+        }
+        for (int i = start; i < buffer_size; i++) {
+        if ((content_end(start) == 0) && (found_inline_chunk(start) == 0)) {
+          printf("%c", buffer[]);
+        }
+        
+      }
+    </pre>
+    <p>
+    </pre>
+
+    <pre id="recursively process chunk">
+      void recursively_process_chunk(char* chunk_name) {
+        int i;
+        for (i = 0; i < buffer_size;) {
+          if (found_chunk(i, chunk_name) == 1) {
+            move_into_content(&i);
+          }
+          while (!element_end(i)) {
+            printf(buffer[i]);
+            i++;
+          }
+
+        }
+
+
+    </pre>
+    <pre id="find chunk">
+      @{get next line}
+
+      int find_chunk_begin(int* begin, int start, char* chunk_name) {
+        int i;
+        int tag = 0;
+        for (i = start; i < buffer_size; i++) {
+          if (buffer[i] == '<') {
+            tag = 1;
+          } else if (buffer[i] == '>') {
+            tag = 0;
+          } else if (
+            (tag == 1) &&
+            (strncmp(&buffer[i], "id=\"", 4) == 0) &&
+            (strncmp(&buffer[i+4], chunk_name, strlen(chunk_name)) == 0) &&
+            (strncmp(&buffer[i+4+strlen(chunk_name)], "\"", 1) == 0)
+          ) {
+            &begin = get_next_line(i);
+            return 1;
+          }
+        }
+        return 0;
+      }
+
+      int find_chunk_end(int* end, char* chunk_name) {
+        int i;
+        int tag = 0;
+        for (i = start; i < buffer_size-1; i++) {
+          if ((buffer[i] == '<') && (buffer[i+1] != ' ')) {
+            tag = 1;
+          } else if ((buffer[i] != ' ') {
+            tag = 0;
+          } else if (
+            (tag == 1) &&
+            (strncmp(&buffer[i], "id=\"", 4) == 0) &&
+            (strncmp(&buffer[i+4], chunk_name, strlen(chunk_name)) == 0) &&
+            (strncmp(&buffer[i+4+strlen(chunk_name)], "\"", 1) == 0)
+          ) {
+            &start = get_next_line(i);
+          }
+        }
+        return 0;
+      }
+
+    </pre>
+    <pre id="get next line">
+      int get_next_line(int start) {
+        int i;
+        for (i = start; i < buffer_size; i++) {
+          if (buffer[i] == '\n') {
+            return i;
+          }
+        }
+        return -1;
+      }
+    </pre>
+
+    <pre id="macro">
+      #define MAX_STACK_SIZE 1024
+    </pre>
+
+    <pre id="global variable">
+      char* chunk_name_stack[MAX_STACK_SIZE] = {0};
+      int chunk_name_stack_size = 0;
+    </pre>
+
+    <pre id="get chunk function">
+      void print_chunk(int indent, int start) {
+        char* chunk_name;
+        int i;
+        while (chunk_name_stack_size > 0) {
+          chunk_name = stack_pop(chunk_name_stack);
+          position = find_chunk(0, chunk_name);
+          for (i = position; i < buffer_size; i++) {
+            if (strncmp(&buffer[i], "@{", 2) == 0) {
+          }
+        }
+
+      int start = 0;
+      char* chunk_name;
+      if (stack_is_empty(chunk_name_stack) == 1) {
+        chunk_name = argv[2];
+      } else {
+        chunk_name = stack_pop(chunk_name_stack);
+      }
+
+
+    </pre>
+
+
+    <h3>Cleanup</h3>
+    <p>TODO</p>
+    <pre id="cleanup">
+      free(buffer);
+      buffer_size = 0;
+      close(file_handle);
+    </pre>
+
+  </body>
+</html>
+
