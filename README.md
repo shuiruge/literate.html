@@ -22,7 +22,7 @@ Literate programming in HTML.
 </chunk>
 ```
 
-Displayed in browser, the `<chunkref name="say hello"/>` element will be converted to `&#10216;<a href="#say-hello">say hello</a>&#10217;`, which is &#10216;<a href="#say-hello">say hello</a>&#10217;. The `<chunk>` element will be converted to `<pre><code>...</code></pre>`. In addition, there will be a tangle button at the beginning of each `<chunk>` element. Clicking the button will tangle the chunk in the `<chunk>` element, popup a new window for showing the tangled code.
+Displayed in browser, the `<chunkref name="say hello"/>` element will be converted to `&#10216;say hello&#10217;`, which is &#10216;say hello&#10217;. The `<chunk name=chunkname>...</chunk>` will be converted to `<pre id=chunkname><code>...</code></pre>`. In addition, there will be a tangle button at the beginning of each `<chunk>` element. Clicking the button will tangle the chunk in the `<chunk>` element, popup a new window for showing the tangled code.
 
 ## References
 
