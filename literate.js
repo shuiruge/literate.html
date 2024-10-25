@@ -1,77 +1,81 @@
-// For the problem that custom element cannot get innerHTML:
-// https://stackoverflow.com/a/62966393/1218716
-// And for naming custom elements:
-// https://html.spec.whatwg.org/multipage/custom-elements.html#valid-custom-element-name
+/* Bootstrap literate.html */
 
-class BlockChunk extends HTMLElement {
-  get name() {
-    return this.getAttribute('name');
+function weaveChunkRef(chunkRef) {
+  var span = document.createElement("span");
+  span.setAttribute("class", "chunk-name");
+
+  var chunkName = chunkRef.innerHTML;
+  if (chunkRef.parentNode.getAttribute("class") == "chunk") {
+    span.innerHTML = chunkName;
+  } else {
+    var code = document.createElement("code");
+    code.innerHTML = chunkName;
+    span.appendChild(code);
   }
-  connectedCallback() {
-    setTimeout(() => {
-      var div = document.createElement("div");
-      div.setAttribute("class", "block-chunk");
 
-      var head = document.createElement("span");
-      head.setAttribute("class", "block-chunk-head");
-      var title = document.createElement("strong");
-      title.innerHTML = this.name;
-      head.appendChild(title);
-      var button = document.createElement("button");
-      button.innerHTML = "tangle";
-      button.onclick = () => {
-        // TODO: tangle
-        return false;
-      }
-      head.appendChild(button);
-      div.appendChild(head);
+  chunkRef.innerHTML = null;
+  chunkRef.appendChild(document.createTextNode("⟨"));
+  chunkRef.appendChild(span);
+  chunkRef.appendChild(document.createTextNode("⟩"));
+}
 
-      var pre = document.createElement("pre");
-      pre.innerHTML = this.innerHTML;
-      div.appendChild(pre);
+function weaveChunk(chunk) {
+  if (!chunk.getAttribute("name")) {
+    alert("ERROR 1");
+    throw new Error("Block chunk has no name");
+  }
 
-      this.parentNode.replaceChild(div, this);
-    });
+  if ((chunk.tagName == 'DIV') && (chunk.getAttribute("class") == "chunk")) {
+    weaveBlockChunk(chunk);
+  } else {
+    weaveInlineChunk(chunk);
   }
 }
 
-class InlineChunk extends HTMLElement {
-  get name() {
-    return this.getAttribute('name');
+function weaveBlockChunk(chunk) {
+  var head = document.createElement("span");
+  head.setAttribute("class", "block-chunk-head");
+  var title = chunk.getAttribute("name");
+  head.appendChild(document.createTextNode(title));
+  var button = document.createElement("button");
+  button.innerHTML = "tangle";
+  button.onclick = () => {
+    tangle(chunk);
   }
-  connectedCallback() {
-    setTimeout(() => {
-      var span = document.createElement("span")
-      span.setAttribute("class", "inline-chunk");
+  head.appendChild(button);
 
-      var head = document.createElement("strong");
-      head.innerHTML = this.name;
-      span.appendChild(head);
+  var code = document.createElement('pre');
+  code.innerHTML = chunk.innerHTML;
 
-      span.appendChild(document.createTextNode(" ≡⟨ "));
-      var code = document.createElement("code");
-      code.innerHTML = this.innerHTML;
-      span.appendChild(code);
-      span.appendChild(document.createTextNode(" ⟩"));
+  chunk.innerHTML = null;
+  chunk.appendChild(head);
+  chunk.appendChild(code);
+}
 
-      this.parentNode.replaceChild(span, this);
-    });
+function weaveInlineChunk(chunk) {
+    var head = document.createElement("span");
+    head.setAttribute("class", "inline-chunk-head");
+    head.innerHTML = chunk.getAttribute("name");
+
+    var code = document.createElement("code");
+    code.innerHTML = chunk.innerHTML;
+
+    chunk.innerHTML = null;
+    chunk.appendChild(head);
+    chunk.appendChild(document.createTextNode(" ≡⟨ "));
+    chunk.appendChild(code);
+    chunk.appendChild(document.createTextNode(" ⟩"));
+}
+
+function weave() {
+  var chunkRefs = document.getElementsByClassName('chunkref');
+  for (var i = 0; i < chunkRefs.length; i++) {
+    weaveChunkRef(chunkRefs[i]);
+  }
+  var chunks = document.getElementsByClassName('chunk');
+  for (var i = 0; i < chunks.length; i++) {
+    weaveChunk(chunks[i]);
   }
 }
 
-class ChunkRef extends HTMLElement {
-  get name() {
-    return this.getAttribute('name');
-  }
-  connectedCallback() {
-    setTimeout(() => {
-      var span = document.createElement('span')
-      span.setAttribute("class", "chunk-ref");
-      span.innerHTML = `⟨${this.name}⟩`;
-      this.parentNode.replaceChild(span, this);
-    });
-  }
-}
-customElements.define('block-chunk', BlockChunk);
-customElements.define('inline-chunk', InlineChunk);
-customElements.define('chunk-ref', ChunkRef);
+onload = weave;
