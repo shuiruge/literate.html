@@ -149,7 +149,7 @@
       </pre>
     </p>
 
-    <h3>Sharing Chunk Name</h3>
+    <h3 id="shareing-chunk-name">Sharing Chunk Name</h3>
     <p>
       Different chunks may share the same name. For example:
       <pre>
@@ -175,9 +175,9 @@
 
     <h2>Weaving</h2>
     <p>
-      To display chunks in browser, we use JavaScript to transcript the HTML tag
-      that contains the block chunk into a <code>pre</code> element and the
-      inline chunk into a <code>code</code> element.
+      Chunks are woven to display in browser. We use JavaScript to transcript
+      the HTML elements of chunks and chunk references into the those that are
+      more suitable for display and coorporating with CSS.
     </p>
 
     <h3>Weaving Chunk Reference</h3>
@@ -239,7 +239,8 @@
         &lt;span class="inline-chunk-head"&gt;⟨chunk name⟩≡&lt;/span&gt;&lt;code&gt;... one line code ...&lt;/code&gt;
       </pre>
       within the original <code>&lt;span class="chunk"&gt;</code> element.
-      We add a span tag for the head, and the one line code is wrapped in a code tag.
+      We add a <code>span</code> element for the head, and the one line code
+      is wrapped in a <code>code</code> element.
       Again, we shall append an unwoven span to the inline chunk. So, we simply
       follow the code in <span class="chunkref">weave chunk reference</span>,
       with a litte adaptation.
@@ -296,8 +297,8 @@
         chunkHead.append(tangleLink);
         chunkHead.append(document.createTextNode("⟩≡"));
       </div>
-      The unwoven now becomes a div tag. So, the code for weaving block chunk
-      simply an adaptation of <span class="chunkref">weave inline chunk</span>.
+      The unwoven now becomes a <code>div</code> element. So, the code for weaving
+      block chunk simply an adaptation of <span class="chunkref">weave inline chunk</span>.
       <div class="chunk" name="weave block chunk">
         function weaveBlockChunk(chunk) {
           /* Create unwoven span */
@@ -342,7 +343,7 @@
       }
     </div>
     Weaving chunks is a little more complicated, since chunks can be inline
-    (span tag) or block (div tag).
+    (a <code>span</code>) or block (a <code>div</code>).
     <div class="chunk" name="weave chunks">
       /* Weave chunks */
       var chunks = document.getElementsByClassName("chunk");
@@ -357,7 +358,19 @@
         }
       }
     </div>
+
     <h2>Tangling</h2>
+    <p>
+      We tangle a chunk by calling <code>tangle(chunkName)</code> function, where
+      <code>chunkName</code> is a string.
+
+      This function first creates an HTML element as the environment for wrapping
+      the tangled code. Usually a <code>pre</code> element.
+
+      Then, we collect all chunks that have the name <code>chunkName</code>.
+      As stated in a <a href="#share-chunk-name">previous section</a>, there can be
+      multiple chunks with the same name.
+    </p>
 
   </body>
 </html>
