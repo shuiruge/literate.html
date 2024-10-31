@@ -9,9 +9,19 @@
         background-color: #c7edcc;
     }
     </style>
+
+    <!-- mathjax -->
     <script type="text/javascript"
       src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
     </script>
+
+    <!-- highlight.js -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js">
+    </script>
+    <script>hljs.highlightAll();</script>
+
     <script type="text/javascript"
       src="literate.js">
     </script>
@@ -19,44 +29,44 @@
 
   <body>
     <h1>Literate Programming in HTML</h1>
-    <div id="head-quotation">
-      <blockquote cite="http://www.axiom-developer.org/axiom-website/litprog.html">
-        The best programming language is English. Everything else is notation.
-      </blockquote>
-      <p>
-        -- Tim Daly
-      </p>
-    </div>
 
     <h2>What Is Literate Programming</h2>
     <p>
-      Let us continue citing Tim Daly.
+      In <a href="http://www.axiom-developer.org/axiom-website/litprog.html">Literate Programming</a>,
+      Tim Daly wrote:
+      <blockquote cite="http://www.axiom-developer.org/axiom-website/litprog.html">
+        The best programming language is English. Everything else is notation.
+      </blockquote>
     </p>
-    <blockquote cite="http://www.axiom-developer.org/axiom-website/litprog.html">
-      <p>
-        Consider the best possible world. You've been hired at a company and
-        join a team that is already working on a program. They hand you a book,
-        tell you to go home and read it over the next two weeks. At the end of
-        the two weeks you can work on the program as effectively anyone on the
-        team. The team has successfully communicated from one human to another.
-      </p>
-      <p>
-        What is in the book? Remember our calculus textbook? It started from
-        the ideas like limits and gradually developed the ideas until they could
-        be expressed in equations. By the time you got to the equations you
-        already understood the concepts. You could look at the equations and see
-        why they matched the text. It is the <strong>why</strong> that is the
-        important part. It is the part that our programs are missing.
-      </p>
-      <p>
-        The book you took home uses the same method. You started with the problem
-        in chapter 1. Chapter 2 expresses the ideas needed to solve the problem.
-        The next few chapters expand on each idea, gradually becoming more specific
-        until the idea is reduced to code. By the time you get to the code it
-        should be perfectly clear what the code should look like. Any part of
-        the code you don't understand means that the book needs some additional words.
-      </p>
-    </blockquote>
+    <p>
+      Why? he went on to explain:
+      <blockquote cite="http://www.axiom-developer.org/axiom-website/litprog.html">
+        <p>
+          Consider the best possible world. You've been hired at a company and
+          join a team that is already working on a program. They hand you a book,
+          tell you to go home and read it over the next two weeks. At the end of
+          the two weeks you can work on the program as effectively anyone on the
+          team. The team has successfully communicated from one human to another.
+        </p>
+        <p>
+          What is in the book? Remember our calculus textbook? It started from
+          the ideas like limits and gradually developed the ideas until they could
+          be expressed in equations. By the time you got to the equations you
+          already understood the concepts. You could look at the equations and see
+          why they matched the text. It is the <em>why</em> that is the
+          important part. It is the part that our programs are missing.
+        </p>
+        <p>
+          The book you took home uses the same method. You started with the problem
+          in chapter 1. Chapter 2 expresses the ideas needed to solve the problem.
+          The next few chapters expand on each idea, gradually becoming more specific
+          until the idea is reduced to code. By the time you get to the code it
+          should be perfectly clear what the code should look like. Any part of
+          the code you don't understand means that the book needs some additional words.
+        </p>
+      </blockquote>
+      TODO
+    </p>
 
     <p>
       Briefly, literate programming has two components: <strong>weave</strong>
@@ -65,22 +75,39 @@
       in the document are extracted and organized in order.
     </p>
     <p>
-      For example, we can write:
-    </p>
-    <div class="chunk" name="hello.c">
-      <span class="chunkref">include</span>
-      int main() {
-        <span class="chunkref">say hello</span>
-        return 0;
-      }
-    </div>
-    <p>
-      where <span class="chunk" name="include">#include &lt;stdio.h&gt;</span>
+      The basic building blocks are chunks and chunk references.
+      
+      A <strong>chunk</strong> is a piece of code assigned with a name, called
+      <strong>chunk name</strong>. And a <strong>chunk reference</strong> refers
+      to a chunk by its name.
+
+      So, for example, we can define a chunk named <code>hello.c</code>:
+
+      <div class="chunk" name="hello.c">
+        <span class="chunkref">include</span>
+        int main() {
+          <span class="chunkref">say hello</span>
+          return 0;
+        }
+      </div>
+
+      where the chunk references <span class="chunkref">include</span> and
+      <span class="chunkref">say hello</span> are defined elsewhere. As an
+      example, <span class="chunk" name="include">#include &lt;stdio.h&gt;</span>
       and <span class="chunk" name="say hello">printf("Hello, world!\n");</span>
+
+      Then, by tangling, code are extracted and organized in order:
+
+      <pre>
+        #include &lt;stdio.h&gt;
+        int main() {
+          printf("Hello, world!\n");
+          return 0;
+        }
+      </pre>
     </p>
 
     <h2>Why Using HTML</h2>
-
     <p>
       The main reason is that the HTML file can be displayed directly in a browser.
       So, there is no need to weave.
@@ -96,35 +123,241 @@
     </p>
 
     <h2>Chunk in HTML</h2>
-      <p>
-        As usual, we use the "class" attribute to indicate chunks and chunk references.
+
+    <h3>HTML Elements for Chunks</h3>
+    <p>
+      As usual, we use the "class" attribute to indicate chunk and chunk reference.
+      Thus, block chunk is represented by <code>div</code> element with class "chunk"
+      and a name attribute. <em>Chunk name shall be plain text.</em> For example:
+      <pre>
+        &lt;div class="chunk" name="hello.c"&gt;
+
+          ...code block...
         
-        Thus, block chunk is represented by <code>div</code> element with class "chunk"
-        and a name attribute. For example:
-        <pre>
-          &lt;div class="chunk" name="hello.c"&gt;
+        &lt;/div&gt;
+      </pre>
+      And inline chunk is represented by <code>span</code> element with class "chunk"
+      and a name attribute. For example:
+      <pre>
+        &lt;span class="chunk" name="say hello"&gt; ...one line code... &lt;/span&gt;
+      </pre>
+      Chunk reference, which is always inline, is represented by <code>span</code>
+      element with class "chunkref". The refered chunk name locates in the content
+      of the <code>span</code> element. Thus,
+      <pre>
+        &lt;span class="chunkref"&gt;say hello&lt;/span&gt;
+      </pre>
+    </p>
 
-            ...code block...
-          
-          &lt;/div&gt;
-        </pre>
+    <h3>Sharing Chunk Name</h3>
+    <p>
+      Different chunks may share the same name. For example:
+      <pre>
+        &lt;div class="chunk" name="include"&gt;
+          #include &lt;stdio.h&gt;
+        &lt;/div&gt;
+      </pre>
+      and then after some explanation,
+      <pre>
+        &lt;div class="chunk" name="include"&gt;
+          #include &lt;math.h&gt;
+        &lt;/div&gt;
+      </pre>
+      While tangling, chunks with the same name are stacked in due order.
+      Thus, the previous example is equivalent to:
+      <pre>
+        &lt;div class="chunk" name="include"&gt;
+          #include &lt;stdio.h&gt;
+          #include &lt;math.h&gt;
+        &lt;/div&gt;
+      </pre>
+    </p>
 
-        And inline chunk is represented by <code>span</code> element with
-        class "chunk" and a name attribute. For example:
-        <pre>
-          &lt;span class="chunk" name="include"&gt; ...one line code... &lt;/span&gt;
-        </pre>
+    <h2>Weaving</h2>
+    <p>
+      To display chunks in browser, we use JavaScript to transcript the HTML tag
+      that contains the block chunk into a <code>pre</code> element and the
+      inline chunk into a <code>code</code> element.
+    </p>
 
-        Chunk reference, which is always inline, is represented by <code>span</code>
-        element with class "chunkref". The refered chunk name locates in the content
-        of the <code>span</code> element. Thus,
-        <pre>
-          &lt;span class="chunkref"&gt;include&lt;/span&gt;
-        </pre>
-      </p>
+    <h3>Weaving Chunk Reference</h3>
+    <p>
+      We first deal with chunk reference. Recall that chun reference has the format
+      <code>&lt;span class="chunkref"&gt;chunk name&lt;/span&gt;</code>.
+      We are to transcript it into ⟨chunk name⟩.
+    </p>
+    <p>
+      To do this, we replace the <code>innerHTML</code> of the <code>span</code>
+      element with "⟨chunk name⟩".
+      But, this will modify the original HTML, such that, at the time of tangling,
+      we cannot tangle from the original code. For dealing with this problem, we
+      shall store the original in a new <code>span</code> element with the class
+      "unwoven" and set it as hidden.
+      So, the code splits into two parts:
+      <div class="chunk" name="weave chunk reference">
+        function weaveChunkRef(chunkRef) {
+          <span class="chunkref">create unwoven span for weaving chunk reference</span>
+          <span class="chunkref">replace innerHTML for weaving chunk reference</span>
+        }
+      </div>
+      wherein,
+      <div class="chunk" name="create unwoven span for weaving chunk reference">
+        /* Create unwoven span */
+        var unwoven = document.createElement("span");
+        unwoven.setAttribute("class", "unwoven");
+        unwoven.setAttribute("hidden", true);
+        unwoven.innerHTML = chunkRef.innerHTML;
+      </div>
+      And,
+      <div class="chunk" name="replace innerHTML for weaving chunk reference">
+        /* Replace HTML */
+        var chunkName = chunkRef.innerHTML;
+        chunkRef.innerHTML = null;
+        chunkRef.appendChild(document.createTextNode(`⟨${chunkName}⟩`));
+        chunkRef.appendChild(unwoven);
+      </div>
+    </p>
+    <p>
+      With the unwoven span, to unweave a chunk reference or a chunk in later,
+      all we need to do is extracting the element with class "unwoven" and then
+      replacing the innerHTML of the woven with that of the unwoven.
+      <div class="chunk" name="unwoven">
+        function unweave(elem) {
+          var unwoven = elem.getElementsByClassName("unwoven")[0]
+          if (unwoven == undefined) {
+            throw new Error("No unwoven element found.");
+          }
+          return unwoven.innerHTML;
+        }
+      </div>
+    </p>
 
-    <h2>Weave</h2>
-    <h2>Tangle</h2>
+    <h3>Weaving Inline Chunk</h3>
+    <p>
+      Then, consider inline chunk. Inline chunk is displayed in the format
+      <pre>
+        &lt;span class="inline-chunk-head"&gt;⟨chunk name⟩≡&lt;/span&gt;&lt;code&gt;... one line code ...&lt;/code&gt;
+      </pre>
+      within the original <code>&lt;span class="chunk"&gt;</code> element.
+      We add a span tag for the head, and the one line code is wrapped in a code tag.
+      Again, we shall append an unwoven span to the inline chunk. So, we simply
+      follow the code in <span class="chunkref">weave chunk reference</span>,
+      with a litte adaptation.
+      <div class="chunk" name="weave inline chunk">
+        function weaveInlineChunk(chunk) {
+          /* Create unwoven span */
+          var unwoven = document.createElement("span");
+          unwoven.setAttribute("class", "unwoven");
+          unwoven.setAttribute("hidden", true);
+          unwoven.innerHTML = chunk.innerHTML;
+
+          /* Create chunk head span */
+          var chunkHead = document.createElement("span");
+          chunkHead.setAttribute("class", "inline-chunk-head");
+          chunkHead.innerHTML = `⟨${chunk.getAttribute("name")}⟩≡`;
+
+          /* Create code */
+          var code = document.createElement("code");
+          code.innerHTML = chunk.innerHTML;
+
+          /* Replace HTML */
+          chunk.innerHTML = null;
+          chunk.appendChild(chunkHead);
+          chunk.appendChild(code);
+          chunk.appendChild(unwoven);
+        }
+      </div>
+    </p>
+
+    <h3>Weaving Block Chunk</h3>
+    <p>
+      Finally, consider block chunk. Almost the same as inline chunk, block chunk
+      should be displayed in the format
+      <pre>
+        &lt;span class="block-chunk-head"&gt;⟨chunk name⟩≡&lt;/span&gt;&lt;pre&gt;... code block ...&lt;/pre&gt;
+      </pre>
+      within the original <code>&lt;div class="chunk"&gt;</code> element.
+      But, we add a link to the head, clicking which will tangle the chunk.
+      Thus, the head span turns into
+      <pre>
+        ⟨&lt;a onclick="tangle(chunkname)"&gt;chunkname&lt;/a&gt;⟩≡
+      </pre>
+      which corresponds to the code:
+      <div class="chunk" name="chunk head span for block chunk">
+        /* Create chunk head span */
+        var chunkHead = document.createElement("span");
+        chunkHead.setAttribute("class", "block-chunk-head");
+        chunkHead.append(document.createTextNode("⟨"));
+        tangleLink = document.createElement("a");
+        var chunkName = chunk.getAttribute("name");
+        tangleLink.setAttribute("href", "#");
+        tangleLink.setAttribute("onclick", `tangle('${chunkName}')`);
+        tangleLink.innerHTML = chunkName;
+        chunkHead.append(tangleLink);
+        chunkHead.append(document.createTextNode("⟩≡"));
+      </div>
+      The unwoven now becomes a div tag. So, the code for weaving block chunk
+      simply an adaptation of <span class="chunkref">weave inline chunk</span>.
+      <div class="chunk" name="weave block chunk">
+        function weaveBlockChunk(chunk) {
+          /* Create unwoven span */
+          var unwoven = document.createElement("div");
+          unwoven.setAttribute("class", "unwoven");
+          unwoven.setAttribute("hidden", true);
+          unwoven.innerHTML = chunk.innerHTML;
+
+          <span class="chunkref">chunk head span for block chunk</span>
+
+          /* Create pre */
+          var pre = document.createElement("pre");
+          pre.innerHTML = chunk.innerHTML;
+
+          /* Replace HTML */
+          chunk.innerHTML = null;
+          chunk.appendChild(chunkHead);
+          chunk.appendChild(pre);
+          chunk.appendChild(unwoven);
+        }
+      </div> 
+    </p>
+
+    <h3>Weave Chunks</h3>
+
+    <h3>Weave All</h3>
+    Now, we have had the all the functions for weaving. The order of weaving
+    chunk references and chunks is irrelevant. So,
+    <div class="chunk" name="weave all">
+      function weave() {
+        <span class="chunkref">weave chunk references</span>
+        <span class="chunkref">weave chunks</span>
+      }
+    </div>
+    Weaving chunk references is straight forward. We use a stupid loop to
+    implement it.
+    <div class="chunk" name="weave chunk references">
+      /* Weave chunk references */
+      var chunkRefs = document.getElementsByClassName("chunkref");
+      for (var i = 0; i < chunkRefs.length; i++) {
+        weaveChunkRef(chunkRefs[i]);
+      }
+    </div>
+    Weaving chunks is a little more complicated, since chunks can be inline
+    (span tag) or block (div tag).
+    <div class="chunk" name="weave chunks">
+      /* Weave chunks */
+      var chunks = document.getElementsByClassName("chunk");
+      for (var i = 0; i < chunks.length; i++) {
+        var chunk = chunks[i];
+        if (chunk.tagName == "SPAN") {
+          weaveInlineChunk(chunk);
+        } else if (chunk.tagName == "DIV") {
+          weaveBlockChunk(chunk);
+        } else {
+          throw new Error("Unknown chunk type: " + chunk.tagName);
+        }
+      }
+    </div>
+    <h2>Tangling</h2>
 
   </body>
 </html>
