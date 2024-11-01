@@ -7,6 +7,7 @@
     <style>
       body {
         background-color: #c7edcc;
+        max-width: 700px;
     }
     </style>
 
@@ -305,9 +306,9 @@
       <div class="chunk" name="chunk head span for block chunk">
         var chunkHead = document.createElement("span");
         chunkHead.setAttribute("class", "block-chunk-head");
-        chunkHead.append(document.createTextNode("⟨"));
-        chunkHead.append(tangleLink);
-        chunkHead.append(document.createTextNode("⟩≡"));
+        chunkHead.appendChild(document.createTextNode("⟨"));
+        chunkHead.appendChild(tangleLink);
+        chunkHead.appendChild(document.createTextNode("⟩≡"));
       </div>
       The unwoven now becomes a <code>div</code> element. So, the code for weaving
       block chunk simply an adaptation of <span class="chunkref">weave inline chunk</span>.

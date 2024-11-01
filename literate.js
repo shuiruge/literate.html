@@ -58,9 +58,9 @@ function weaveBlockChunk(chunk) {
   tangleLink.innerHTML = chunkName;
   var chunkHead = document.createElement("span");
   chunkHead.setAttribute("class", "block-chunk-head");
-  chunkHead.append(document.createTextNode("⟨"));
-  chunkHead.append(tangleLink);
-  chunkHead.append(document.createTextNode("⟩≡"));
+  chunkHead.appendChild(document.createTextNode("⟨"));
+  chunkHead.appendChild(tangleLink);
+  chunkHead.appendChild(document.createTextNode("⟩≡"));
 
   /* Create pre */
   var pre = document.createElement("pre");
