@@ -3,28 +3,19 @@
   <head>
     <meta charset="utf-8">
     <title>Literate Programming in HTML</title>
+
     <style>
       body {
-        max-width: 7in;
         background-color: #c7edcc;
     }
     </style>
 
+    <!-- literate -->
+    <link rel="stylesheet" href="literate.css">
+    <script type="text/javascript" src="literate.js"></script>
+
     <!-- mathjax -->
-    <script type="text/javascript"
-      src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
-    </script>
-
-    <!-- highlight.js -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
-    <script
-      src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js">
-    </script>
-    <script>hljs.highlightAll();</script>
-
-    <script type="text/javascript"
-      src="literate.js">
-    </script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
   </head>
 
   <body>
@@ -98,13 +89,13 @@
 
       Then, by tangling, code are extracted and organized in order:
 
-      <pre>
+      <pre><code>
         #include &lt;stdio.h&gt;
         int main() {
           printf("Hello, world!\n");
           return 0;
         }
-      </pre>
+      </code></pre>
     </p>
 
     <h2>Why Using HTML</h2>
@@ -129,48 +120,52 @@
       As usual, we use the "class" attribute to indicate chunk and chunk reference.
       Thus, block chunk is represented by <code>div</code> element with class "chunk"
       and a name attribute. <em>Chunk name shall be plain text.</em> For example:
-      <pre>
+      <pre><code>
         &lt;div class="chunk" name="hello.c"&gt;
 
           ...code block...
         
         &lt;/div&gt;
-      </pre>
+      </code></pre>
+      If the chunk is to be tangled, then we add an attribute <code>export</code>,
+      whose value is irrelevant.
       And inline chunk is represented by <code>span</code> element with class "chunk"
       and a name attribute. For example:
-      <pre>
+      <pre><code>
         &lt;span class="chunk" name="say hello"&gt; ...one line code... &lt;/span&gt;
-      </pre>
+      </code></pre>
       Chunk reference, which is always inline, is represented by <code>span</code>
       element with class "chunkref". The refered chunk name locates in the content
       of the <code>span</code> element. Thus,
-      <pre>
+      <pre><code>
         &lt;span class="chunkref"&gt;say hello&lt;/span&gt;
-      </pre>
+      </code></pre>
     </p>
 
     <h3 id="shareing-chunk-name">Sharing Chunk Name</h3>
     <p>
       Different chunks may share the same name. For example:
-      <pre>
+      <pre><code>
         &lt;div class="chunk" name="include"&gt;
           #include &lt;stdio.h&gt;
         &lt;/div&gt;
-      </pre>
+      </code></pre>
       and then after some explanation,
-      <pre>
+      <pre><code>
         &lt;div class="chunk" name="include"&gt;
           #include &lt;math.h&gt;
         &lt;/div&gt;
-      </pre>
+      </code></pre>
       While tangling, chunks with the same name are stacked in due order.
       Thus, the previous example is equivalent to:
-      <pre>
+      <pre><code>
         &lt;div class="chunk" name="include"&gt;
           #include &lt;stdio.h&gt;
           #include &lt;math.h&gt;
         &lt;/div&gt;
-      </pre>
+      </code></pre>
+      To export the chunks with the same name, we set attribute <code>export</code>
+      at least to the first chunk.
     </p>
 
     <h2>Weaving</h2>
@@ -182,7 +177,7 @@
 
     <h3>Weaving Chunk Reference</h3>
     <p>
-      We first deal with chunk reference. Recall that chun reference has the format
+      We first deal with chunk reference. Recall that chunk reference has the format
       <code>&lt;span class="chunkref"&gt;chunk name&lt;/span&gt;</code>.
       We are to transcript it into ⟨chunk name⟩.
     </p>
@@ -194,7 +189,7 @@
       shall store the original in a new <code>span</code> element with the class
       "unwoven" and set it as hidden.
       So, the code splits into two parts:
-      <div class="chunk" name="weave chunk reference">
+      <div class="chunk" name="weave chunk reference" export>
         function weaveChunkRef(chunkRef) {
           <span class="chunkref">create unwoven span for weaving chunk reference</span>
           <span class="chunkref">replace innerHTML for weaving chunk reference</span>
@@ -208,7 +203,9 @@
         unwoven.setAttribute("hidden", true);
         unwoven.innerHTML = chunkRef.innerHTML;
       </div>
-      And,
+      Now, we clean up the <code>chunkRef</code> element and add "⟨chunk name⟩" and
+      the unwoven <code>span</code> to it. But, before cleaning, we shall store the
+      chunk name, which is the <code>chunkRef.innerHTML</code>, in a new variable.
       <div class="chunk" name="replace innerHTML for weaving chunk reference">
         /* Replace HTML */
         var chunkName = chunkRef.innerHTML;
@@ -217,17 +214,21 @@
         chunkRef.appendChild(unwoven);
       </div>
     </p>
+
+    <h3>Unweaving</h3>
     <p>
       With the unwoven span, to unweave a chunk reference or a chunk in later,
-      all we need to do is extracting the element with class "unwoven" and then
-      replacing the innerHTML of the woven with that of the unwoven.
-      <div class="chunk" name="unwoven">
+      all we need to do is iterating over the children nodes and find out the
+      element with class "unwoven". (If not found, throw an error.)
+      <div class="chunk" name="unwoven" export>
         function unweave(elem) {
-          var unwoven = elem.getElementsByClassName("unwoven")[0]
-          if (unwoven == undefined) {
-            throw new Error("No unwoven element found.");
+          for (var i = 0; i < elem.children.length; i++) {
+            var child = elem.children[i];
+            if (child.getAttribute("class") == "unwoven") {
+              return child.innerHTML;
+            }
           }
-          return unwoven.innerHTML;
+          throw new Error("[unweave] no unwoven span found in element: " + elem.innerHTML);
         }
       </div>
     </p>
@@ -235,16 +236,28 @@
     <h3>Weaving Inline Chunk</h3>
     <p>
       Then, consider inline chunk. Inline chunk is displayed in the format
-      <pre>
-        &lt;span class="inline-chunk-head"&gt;⟨chunk name⟩≡&lt;/span&gt;&lt;code&gt;... one line code ...&lt;/code&gt;
-      </pre>
+      <pre><code>
+        &lt;span class="inline-chunk-head"&gt;⟨chunk name⟩≡&lt;/span&gt;
+        &lt;code&gt;... one line code ...&lt;/code&gt;
+      </code></pre>
       within the original <code>&lt;span class="chunk"&gt;</code> element.
-      We add a <code>span</code> element for the head, and the one line code
-      is wrapped in a <code>code</code> element.
+      We add a <code>span</code> element for the head:
+      <div class="chunk" name="create head for inline chunk">
+        /* Create chunk head span */
+        var chunkHead = document.createElement("span");
+        chunkHead.setAttribute("class", "inline-chunk-head");
+        chunkHead.innerHTML = `⟨${chunk.getAttribute("name")}⟩≡`;
+      </div>
+      And the one line code is wrapped in a <code>code</code> element:
+      <div class="chunk" name="create code for inline chunk">
+        /* Create code */
+        var code = document.createElement("code");
+        code.innerHTML = chunk.innerHTML;
+      </div>
       Again, we shall append an unwoven span to the inline chunk. So, we simply
       follow the code in <span class="chunkref">weave chunk reference</span>,
       with a litte adaptation.
-      <div class="chunk" name="weave inline chunk">
+      <div class="chunk" name="weave inline chunk" export>
         function weaveInlineChunk(chunk) {
           /* Create unwoven span */
           var unwoven = document.createElement("span");
@@ -252,14 +265,9 @@
           unwoven.setAttribute("hidden", true);
           unwoven.innerHTML = chunk.innerHTML;
 
-          /* Create chunk head span */
-          var chunkHead = document.createElement("span");
-          chunkHead.setAttribute("class", "inline-chunk-head");
-          chunkHead.innerHTML = `⟨${chunk.getAttribute("name")}⟩≡`;
+          <span class="chunkref">create head for inline chunk</span>
 
-          /* Create code */
-          var code = document.createElement("code");
-          code.innerHTML = chunk.innerHTML;
+          <span class="chunkref">create code for inline chunk</span>
 
           /* Replace HTML */
           chunk.innerHTML = null;
@@ -274,32 +282,36 @@
     <p>
       Finally, consider block chunk. Almost the same as inline chunk, block chunk
       should be displayed in the format
-      <pre>
-        &lt;span class="block-chunk-head"&gt;⟨chunk name⟩≡&lt;/span&gt;&lt;pre&gt;... code block ...&lt;/pre&gt;
-      </pre>
+      <pre><code>
+        &lt;span class="block-chunk-head"&gt;⟨chunk name⟩≡&lt;/span&gt;
+        &lt;pre&gt;&lt;code&gt;... code block ...&lt;/code&gt;&lt;/pre&gt;
+      </code></pre>
       within the original <code>&lt;div class="chunk"&gt;</code> element.
       But, we add a link to the head, clicking which will tangle the chunk.
       Thus, the head span turns into
-      <pre>
+      <pre><code>
         ⟨&lt;a onclick="tangle(chunkname)"&gt;chunkname&lt;/a&gt;⟩≡
-      </pre>
-      which corresponds to the code:
+      </code></pre>
+      For the tangle link, we have:
       <div class="chunk" name="chunk head span for block chunk">
         /* Create chunk head span */
+        var tangleLink = document.createElement("a");
+        var chunkName = chunk.getAttribute("name");
+        tangleLink.setAttribute("href", "javascript:void(0)");
+        tangleLink.setAttribute("onclick", `tangle('${chunkName}')`);
+        tangleLink.innerHTML = chunkName;
+      </div>
+      Then, we create the head and append everything in order.
+      <div class="chunk" name="chunk head span for block chunk">
         var chunkHead = document.createElement("span");
         chunkHead.setAttribute("class", "block-chunk-head");
         chunkHead.append(document.createTextNode("⟨"));
-        tangleLink = document.createElement("a");
-        var chunkName = chunk.getAttribute("name");
-        tangleLink.setAttribute("href", "#");
-        tangleLink.setAttribute("onclick", `tangle('${chunkName}')`);
-        tangleLink.innerHTML = chunkName;
         chunkHead.append(tangleLink);
         chunkHead.append(document.createTextNode("⟩≡"));
       </div>
       The unwoven now becomes a <code>div</code> element. So, the code for weaving
       block chunk simply an adaptation of <span class="chunkref">weave inline chunk</span>.
-      <div class="chunk" name="weave block chunk">
+      <div class="chunk" name="weave block chunk" export>
         function weaveBlockChunk(chunk) {
           /* Create unwoven span */
           var unwoven = document.createElement("div");
@@ -311,7 +323,9 @@
 
           /* Create pre */
           var pre = document.createElement("pre");
-          pre.innerHTML = chunk.innerHTML;
+          var code = document.createElement("code");
+          code.innerHTML = chunk.innerHTML;
+          pre.appendChild(code);
 
           /* Replace HTML */
           chunk.innerHTML = null;
@@ -327,7 +341,7 @@
     <h3>Weave All</h3>
     Now, we have had the all the functions for weaving. The order of weaving
     chunk references and chunks is irrelevant. So,
-    <div class="chunk" name="weave all">
+    <div class="chunk" name="weave all" export>
       function weave() {
         <span class="chunkref">weave chunk references</span>
         <span class="chunkref">weave chunks</span>
@@ -374,4 +388,3 @@
 
   </body>
 </html>
-

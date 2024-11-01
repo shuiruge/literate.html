@@ -1,0 +1,37 @@
+body {
+  max-width: 700px;
+}
+
+.block-chunk-head a {
+  border: 0.1em;
+  border-style: dashed;
+  text-decoration: none;
+  padding: 0.1em 0.1em;
+  margin: 0.1em;
+}
+
+div.chunk {
+  margin: 1em;
+}
+
+code {
+  font-family: monospace;
+  font-size: inherit;
+  padding: 0.1em 0.1em;
+}
+
+pre code {
+  display: block;
+  border-style: dashed;
+  border-color: grey;
+  border-width: medium;
+  overflow-x: auto;
+}
+
+.inline-chunk-head {
+  font-weight: bold;
+}
+
+.block-chunk-head {
+  font-weight: bold;
+}
