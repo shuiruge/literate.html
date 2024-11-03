@@ -103,7 +103,7 @@ function regularizeCodeBlock(text) {
     }
     else if (counting == true) {
       counting = false;
-      if (whitespaceCount < indentation) throw new Error("Indentation error");
+      if (whitespaceCount < indentation) throw new Error("[regularizeCodeBlock] indentation error");
       for (var j = 0; j < (whitespaceCount - indentation); j++) result += " ";
       result += text[i];
     }
@@ -177,15 +177,15 @@ function _tangle(chunkName) {
     var chunkRef = getFirstChildByClass(unwoven, "chunkref");
     while (chunkRef != undefined) {
       var subChunkName = unweave(chunkRef).innerHTML;
-      var subcode = _tangle(subChunkName);
+      var subCode = _tangle(subChunkName);
       /* Block chunk needs indentation */
       if (chunks[i].tagName == "DIV") {
         var indentation = getIndentation(chunkRef);
-        subcode = indent(subcode, indentation);
+        subCode = indent(subCode, indentation);
       }
-      var subcodeNode = document.createElement("span");
-      subcodeNode.innerHTML = subcode;
-      chunkRef.replaceWith(subcodeNode);
+      var subCodeNode = document.createElement("span");
+      subCodeNode.innerHTML = subCode;
+      chunkRef.replaceWith(subCodeNode);
       chunkRef = getFirstChildByClass(unwoven, "chunkref");
     }
     code += unwoven.innerHTML;

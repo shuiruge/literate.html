@@ -439,7 +439,7 @@
       <div class="chunk" name="walk through text for regularization">
         else if (counting == true) {
           counting = false;
-          if (whitespaceCount < indentation) throw new Error("Indentation error");
+          if (whitespaceCount < indentation) throw new Error("[regularizeCodeBlock] indentation error");
           for (var j = 0; j < (whitespaceCount - indentation); j++) result += " ";
           result += text[i];
         }
