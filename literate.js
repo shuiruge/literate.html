@@ -150,9 +150,11 @@ function weave() {
     var chunk = chunks[i];
     if (chunk.tagName == "SPAN") {
       weaveInlineChunk(chunk);
-    } else if (chunk.tagName == "DIV") {
+    }
+    else if (chunk.tagName == "DIV") {
       weaveBlockChunk(chunk);
-    } else {
+    }
+    else {
       throw new Error("[weave] unknown chunk type: " + chunk.tagName);
     }
   }
