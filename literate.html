@@ -57,11 +57,15 @@
           the code you don't understand means that the book needs some additional words.
         </p>
       </blockquote>
-      TODO
+      Literate programming is like when you are explaining your code to a colleague.
+      You have to declare what you were thinking when you wrote the code, step by
+      step, piece by piece. You are tell the whole story: which step is essential,
+      why the order must be so, or what is this used for. All materials are organized
+      in a strucutre that makes sense to you (not to the compiler).
     </p>
 
     <p>
-      Briefly, literate programming has two components: <strong>weave</strong>
+      Technically, literate programming has two components: <strong>weave</strong>
       and <strong>tangle</strong>. By weaving, the source code is converted to
       printable document, such as PDF or HTML. By tangling, the codes involved
       in the document are extracted and organized in order.
@@ -823,7 +827,8 @@
 
     <h4>Block Chunk</h4>
     <p>
-      For block chunk, we make the head bold.
+      For block chunk, we make the head bold, indicating a definition (we always
+      make something bold when it is defined).
       <div class="chunk" name="block chunk head style">
         .block-chunk-head {
           font-weight: bold;
@@ -845,8 +850,8 @@
 
     <h3>Inline Chunk</h3>
     <p>
-      For inline chunk, we simply make the head bold and add a very narrow margin
-      to isolate it from the content.
+      For inline chunk, we simply make the head bold, indicating a definition,
+      and add a very narrow margin to isolate it from the content.
       <div class="chunk" name="inline chunk style">
         .inline-chunk-head {
           font-weight: bold;
