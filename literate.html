@@ -216,12 +216,12 @@
       With the unwoven span, to unweave a chunk reference or a chunk in later,
       all we need to do is iterating over the children nodes and find out the
       element with class "unwoven". (If not found, throw an error.)
-      <div class="chunk" name="unwoven">
+      <div class="chunk" name="unweave">
         function unweave(elem) {
           for (var i = 0; i < elem.children.length; i++) {
             var child = elem.children[i];
             if (child.getAttribute("class") == "unwoven") {
-              return child.innerHTML;
+              return child;
             }
           }
           throw new Error("[unweave] no unwoven span found in element: " + elem.innerHTML);
@@ -395,7 +395,7 @@
       break, we reset the <code>indentation</code>, expecting for the first line of
       code.
       <div class="chunk" name="walk through text for regularization">
-        if ((result == "") && (text[i] == '\n')) {
+        else if ((result == "") && (text[i] == '\n')) {
           indentation = 0;
         }
       </div>
@@ -471,6 +471,36 @@
       <div class="chunk" name="define regularization">
         return result;
       </div>
+    <p>
+      We have implemented the function for regularizing code in block chunk. Other
+      code blocks in the HTML file wrapped in <code>&lt;pre&gt;&lt;code&gt;</code>
+      element also need regularization. So, we regularize both of them; the order
+      is irrelevant.
+      <div class="chunk" name="regularize all">
+        function regularize() {
+          <span class="chunkref">regularize block chunk</span>
+          <span class="chunkref">regularize code in pre</span>
+        }
+      </div>
+      wherein
+      <div class="chunk" name="regularize block chunk">
+        var divs = document.getElementsByTagName("div");
+        for (var i = 0; i < divs.length; i++) {
+          if (divs[i].getAttribute("class") == "chunk") {
+            divs[i].innerHTML = regularizeCodeBlock(divs[i].innerHTML);
+          }
+        }
+      </div>
+      and
+      <div class="chunk" name="regularize code in pre">
+        var pres = document.getElementsByTagName("pre");
+        for (var i = 0; i < pres.length; i++) {
+          var codes = pres[i].getElementsByTagName("code");
+          for (var j = 0; j < codes.length; j++) {
+            codes[j].innerHTML = regularizeCodeBlock(codes[j].innerHTML);
+          }
+        }
+      </div>
     </p>
 
     <h3>Weave Chunks</h3>
@@ -505,12 +535,14 @@
         } else if (chunk.tagName == "DIV") {
           weaveBlockChunk(chunk);
         } else {
-          throw new Error("Unknown chunk type: " + chunk.tagName);
+          throw new Error("[weave] unknown chunk type: " + chunk.tagName);
         }
       }
     </div>
 
     <h2>Tangling</h2>
+
+    <h3>Tangled Code in Browser</h3>
     <p>
       We tangle a chunk by calling <code>tangle(chunkName)</code> function, where
       <code>chunkName</code> is a string.
@@ -543,17 +575,20 @@
       returns the tangled code.
       <div class="chunk" name="_tangle">
         function _tangle(chunkName) {
+          var code = "";
           <span class="chunkref">define _tangle</span>
+          return code;
         }
       </div>
     </p>
+
+    <h3>Tangling Each Chunk</h3>
     <p>
       To define <code>_tangle</code>, we first collect all chunks that have the name
       <code>chunkName</code>.
       As stated in a <a href="#share-chunk-name">previous section</a>, there can be
       multiple chunks with the same name.
       <div class="chunk" name="define _tangle">
-        var code = "";
         var chunks = document.getElementsByName(chunkName);
         for (var i = 0; i < chunks.length; i++) {
           if (chunks[i].getAttribute("class") != "chunk") continue;
@@ -564,7 +599,7 @@
       references in it with the corresponding tangled code, that is, we will inplace
       manipulate it, we need to make a copy of it, a deep copy.
       <div class="chunk" name="tangle each chunk">
-        var unwoven = unweave(chunk).cloneNode(true);
+        var unwoven = unweave(chunks[i]).cloneNode(true);
       </div>
       To find a chunk reference and replace it with the code in the refered chunk,
       we must take care. Replacing the chunk reference with the corresponding code
@@ -583,6 +618,13 @@
           chunkRef = getFirstChildByClass(unwoven, "chunkref");
         }
       </div>
+      After replacing all chunk references within the unwoven chunk, we append it
+      to the <code>code</code> string. Besides, we also add a newline character
+      between different chunks that share the same chunk name.
+      <div class="chunk" name="tangle each chunk">
+        code += unwoven.innerHTML;
+        if (i < chunks.length - 1) code += "\n";
+      </div>
       The implementation of <code>getFirstChildByClass</code> is straight forward.
       <div class="chunk" name="get first child by class">
         function getFirstChildByClass(node, className) {
@@ -595,6 +637,9 @@
           return undefined;
         }
       </div>
+    </p>
+    <h3>Replacing Chunk Reference</h3>
+    <p>
       For the replacement, we first get the refered chunk name. To distinguish
       the input <code>chunkName</code>, we call it <code>subChunkName</code>.
       <div class="chunk" name="replace chunk reference">
@@ -618,22 +663,119 @@
           subcode = indent(subcode, indentation);
         }
       </div>
-      All is done and we simply replace the node.
+      Everything is ready. Now we replace the chunk reference with the tangled
+      <code>subcode</code>. Since <code>replaceWith</code> method requires an
+      element (node) as input, we shall wrap the string <code>subcode</code> by
+      a <code>span</code> element.
       <div class="chunk" name="replace chunk reference">
-        unwoven.replaceChild(document.createTextNode(subcode), chunkRef);
-      </div>
-
-      <div class="chunk" name="tangle each chunk">
-        code += unescapeHTML(unwoven.innerHTML);
-        if (i < chunks.length - 1) code += "\n";
-      </div>
-
-      Before returning the tangled code, we have to escape HTML tags so as to
-      be properly displayed in browser.
-      <div class="chunk" name="define _tangle">
-        code = escapeHTML(code);
-        return code;
+        var subcodeNode = document.createElement("span");
+        subcodeNode.innerHTML = subcode;
+        chunkRef.replaceWith(subcodeNode);
       </div>
     </p>
+
+    <h3>Utility Functions</h3>
+    <p>
+      Before ending this section, we have to show how the functions <code>getIndentation</code>
+      and <code>indent</code> are implemented. They turns out to be simple.
+      The <code>getIndentation</code> function just returns the indentation
+      of the first line of the code. For example, in the following code,
+      <pre><code>
+        void main() {
+          &lt;span class="chunkref"&gt;say hello&lt;/span&gt;;
+        }
+      </code></pre>
+      the chunk reference (the second line) has indentation 2. We have to figure
+      it out. To do so, we first extract all the string before the chunk reference,
+      which, in this example, is
+      <pre><code>
+        void main() {
+          (end here)
+      </code></pre>
+      This is done by the following function (following <a href="https://stackoverflow.com/a/72545166/1218716">this answer</a>):
+      <div class="chunk" name="get text before">
+        function getTextBefore(node) {
+          var rangeBefore = document.createRange();
+          rangeBefore.setStart(node.parentNode.firstChild, 0);
+          rangeBefore.setEndBefore(node);
+          return rangeBefore.toString();
+        }
+      </div>
+      Then, directly, we count how many whitespaces between the front of the chunk
+      chunk reference and beginning of the line.
+      <div class="chunk" name="get indentation">
+        function getIndentation(chunkRef) {
+          var textBefore = getTextBefore(chunkRef);
+          var indentation = 0;
+          for (var i = textBefore.length - 1; i >= 0; i--) {
+            if (textBefore[i] == ' ') {
+              indentation++;
+            } else {
+              break;
+            }
+          }
+          return indentation;
+        }
+      </div>
+      The <code>indent</code> function is also straight forward. We simply prepend
+      <code>indentation</code> many whitespaces before eachline.
+      <div class="chunk" name="indent">
+        function indent(text, indentation) {
+          var result = "";
+          for (var i = 0; i < text.length; i++) {
+            result += text[i];
+            if (text[i] == '\n') {
+              for (var j = 0; j < indentation; j++) result += ' ';
+            }
+          }
+          return result;
+        }
+      </div>
+    </p>
+
+    <h2>Packaging</h2>
+    In the end of our literate programming journey, we put all these into one
+    JavaScript file, called <code>literate.js</code>.
+    <div class="chunk" name="literate.js">
+      /* Literate Programming in HTML */
+
+      <span class="chunkref">weave chunk reference</span>
+
+      <span class="chunkref">unweave</span>
+
+      <span class="chunkref">weave inline chunk</span>
+
+      <span class="chunkref">weave block chunk</span>
+
+      <span class="chunkref">regularize code block</span>
+
+      <span class="chunkref">regularize all</span>
+
+      <span class="chunkref">weave all</span>
+
+      <span class="chunkref">tangle</span>
+
+      <span class="chunkref">_tangle</span>
+
+      <span class="chunkref">get first child by class</span>
+
+      <span class="chunkref">get text before</span>
+
+      <span class="chunkref">get indentation</span>
+
+      <span class="chunkref">indent</span>
+    </div>
+
+    On loading, we first call <code>regularize</code> for regularizing the code
+    blocks. And then calling <code>weave</code> for displaying the chunks and
+    chunk references in browser. The order of these two functions are crucial,
+    We shall first regularize the code for any modification (such as weaving).
+    So, <code>regularize</code> shall always be called in the first place.
+    <div class="chunk" name="literate.js">
+      onload = () => {
+        regularize();
+        weave();
+      }
+    </div>
   </body>
 </html>

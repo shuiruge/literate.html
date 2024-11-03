@@ -121,12 +121,6 @@ function regularizeCodeBlock(text) {
 }
 
 function regularize() {
-  var divs = document.getElementsByTagName("div");
-  for (var i = 0; i < divs.length; i++) {
-    if (divs[i].getAttribute("class") == "chunk") {
-      divs[i].innerHTML = regularizeCodeBlock(divs[i].innerHTML);
-    }
-  }
   var pres = document.getElementsByTagName("pre");
   for (var i = 0; i < pres.length; i++) {
     var codes = pres[i].getElementsByTagName("code");
@@ -134,18 +128,11 @@ function regularize() {
       codes[j].innerHTML = regularizeCodeBlock(codes[j].innerHTML);
     }
   }
-}
-
-function weaveChunk(chunk) {
-  if (!chunk.getAttribute("name")) {
-    alert("ERROR 1");
-    throw new Error("[weaveChunk]: block chunk has no name");
-  }
-
-  if ((chunk.tagName == 'DIV') && (chunk.getAttribute("class") == "chunk")) {
-    weaveBlockChunk(chunk);
-  } else {
-    weaveInlineChunk(chunk);
+  var divs = document.getElementsByTagName("div");
+  for (var i = 0; i < divs.length; i++) {
+    if (divs[i].getAttribute("class") == "chunk") {
+      divs[i].innerHTML = regularizeCodeBlock(divs[i].innerHTML);
+    }
   }
 }
 
@@ -204,13 +191,14 @@ function _tangle(chunkName) {
         var indentation = getIndentation(chunkRef);
         subcode = indent(subcode, indentation);
       }
-      unwoven.replaceChild(document.createTextNode(subcode), chunkRef);
+      var subcodeNode = document.createElement("span");
+      subcodeNode.innerHTML = subcode;
+      chunkRef.replaceWith(subcodeNode);
       chunkRef = getFirstChildByClass(unwoven, "chunkref");
     }
-    code += unescapeHTML(unwoven.innerHTML);
+    code += unwoven.innerHTML;
     if (i < chunks.length - 1) code += "\n";
   }
-  code = escapeHTML(code);
   return code;
 }
 
@@ -259,19 +247,6 @@ function indent(text, indentation) {
     }
   }
   return result;
-}
-
-function escapeHTML(text) {
-  return text.replace('>', "&gt;")
-             .replace('<', "&lt;");
-}
-
-function unescapeHTML(text) {
-  return text.replace(/&amp;/g, '&')
-             .replace(/&lt;/g, '<')
-             .replace(/&gt;/g, '>')
-             .replace(/&quot;/g, '"')
-             .replace(/&#39;/g, '\'');
 }
 
 onload = () => {
