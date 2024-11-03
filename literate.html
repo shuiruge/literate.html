@@ -82,7 +82,6 @@
           return 0;
         }
       </div>
-
       where the chunk references <span class="chunkref">include</span> and
       <span class="chunkref">say hello</span> are defined elsewhere. As an
       example, <span class="chunk" name="include">#include &lt;stdio.h&gt;</span>
@@ -128,8 +127,6 @@
         
         &lt;/div&gt;
       </code></pre>
-      If the chunk is to be tangled, then we add an attribute <code>export</code>,
-      whose value is irrelevant.
       And inline chunk is represented by <code>span</code> element with class "chunk"
       and a name attribute. For example:
       <pre><code>
@@ -165,8 +162,6 @@
           #include &lt;math.h&gt;
         &lt;/div&gt;
       </code></pre>
-      To export the chunks with the same name, we set attribute <code>export</code>
-      at least to the first chunk.
     </p>
 
     <h2>Weaving</h2>
@@ -190,7 +185,7 @@
       shall store the original in a new <code>span</code> element with the class
       "unwoven" and set it as hidden.
       So, the code splits into two parts:
-      <div class="chunk" name="weave chunk reference" export>
+      <div class="chunk" name="weave chunk reference">
         function weaveChunkRef(chunkRef) {
           <span class="chunkref">create unwoven span for weaving chunk reference</span>
           <span class="chunkref">replace innerHTML for weaving chunk reference</span>
@@ -221,7 +216,7 @@
       With the unwoven span, to unweave a chunk reference or a chunk in later,
       all we need to do is iterating over the children nodes and find out the
       element with class "unwoven". (If not found, throw an error.)
-      <div class="chunk" name="unwoven" export>
+      <div class="chunk" name="unwoven">
         function unweave(elem) {
           for (var i = 0; i < elem.children.length; i++) {
             var child = elem.children[i];
@@ -258,7 +253,7 @@
       Again, we shall append an unwoven span to the inline chunk. So, we simply
       follow the code in <span class="chunkref">weave chunk reference</span>,
       with a litte adaptation.
-      <div class="chunk" name="weave inline chunk" export>
+      <div class="chunk" name="weave inline chunk">
         function weaveInlineChunk(chunk) {
           /* Create unwoven span */
           var unwoven = document.createElement("span");
@@ -285,7 +280,9 @@
       should be displayed in the format
       <pre><code>
         &lt;span class="block-chunk-head"&gt;⟨chunk name⟩≡&lt;/span&gt;
-        &lt;pre&gt;&lt;code&gt;... code block ...&lt;/code&gt;&lt;/pre&gt;
+        &lt;pre&gt;&lt;code&gt;
+          ... code block ...
+        &lt;/code&gt;&lt;/pre&gt;
       </code></pre>
       within the original <code>&lt;div class="chunk"&gt;</code> element.
       But, we add a link to the head, clicking which will tangle the chunk.
@@ -312,7 +309,7 @@
       </div>
       The unwoven now becomes a <code>div</code> element. So, the code for weaving
       block chunk simply an adaptation of <span class="chunkref">weave inline chunk</span>.
-      <div class="chunk" name="weave block chunk" export>
+      <div class="chunk" name="weave block chunk">
         function weaveBlockChunk(chunk) {
           /* Create unwoven span */
           var unwoven = document.createElement("div");
@@ -337,12 +334,141 @@
       </div> 
     </p>
 
+    <h3>Regularize Code Block</h3>
+    <p>
+      A widely known problem is the whitespaces before the "code block". Browser
+      will display these whitespaces, which is not what we intend. To solve this,
+      we have to regularize the code block wrapped by a <code>pre</code> element.
+      For example, code block like this:
+      <pre><code>
+        &lt;pre&gt;
+          if (i = 0) {
+            i++;
+          }
+        &lt;/pre&gt;
+      </code></pre>
+      has the raw text (<code>\n</code> for newline and <code>\s</code> for whitespace):
+      <pre><code>
+        &lt;pre&gt;&lt;code&gt;<strong>\n\s\s\s\s\s\s</strong>if<strong>\s</strong>(i<strong>\s</strong>=<strong>\s</strong>0)<strong>\s</strong>{<strong>\n\s\s\s\s\s\s\s\s</strong>i++;<strong>\n\s\s\s\s\s\s</strong>}<strong>\n\s\s\s\s</strong>&lt;/code&gt;&lt;/pre&gt;
+      </code></pre>
+      There are six extra whitespaces in front of each line, and four whitespaces
+      after the while code block. There is also an extra newline in front of the
+      code block.
+    </p>
+    <p>
+      We are to remove these extra characters.      
+      <div class="chunk" name="regularize code block">
+        function regularizeCodeBlock(text) {
+          <span class="chunkref">define regularization</span>
+        }
+      </div>
+      We need to figure out the indentation (the six extra whitespaces in front
+      of each line). We use the whitespaces in front of the first line of code
+      as the indentation of the whole code block.
+
+      We also need to count the number of whitespaces in front of each line
+      (<code>whitespaceCount</code>) and subtract indentation from it.
+      Consider the line <code>i++;</code> in the previous example, it has
+      <code>whitespaceCount = 8</code> and <code>indentation = 6</code>, so this
+      line is indented by 2 whitespaces (<code>whitespaceCount - indentation</code>).
+      In addition, a flag for the state of counting is found helpful.
+      <div class="chunk" name="define regularization">
+        var result = "";
+        var indentation = 0;
+        var whitespaceCount = 0;
+        var counting = false;
+        for (var i = 0; i < text.length; i++) {
+          <span class="chunkref">single pass for regularization</span>
+        }
+      </div>
+
+      Let us go through the text. When we have not meet any code character, the
+      <code>result</code> is empty. In this case, we omit the newlines. 
+      If we have not encountered any character of the code block, but whitespace,
+      indicating that this maybe the first line of code, we increase <code>indentation</code>.
+      <div class="chunk" name="single pass for regularization">
+        if ((result == "") && (text[i] == ' ')) {
+          indentation++;
+        }
+      </div>
+      But, it maybe an empty line, a line with only whitespaces. So, after a newline
+      break, we reset the <code>indentation</code>, expecting for the first line of
+      code.
+      <div class="chunk" name="single pass for regularization">
+        if ((result == "") && (text[i] == '\n')) {
+          indentation = 0;
+        }
+      </div>
+      Now we have considered the case when <code>result</code> is empty, and only
+      encountering the newline and whitespace. Now, if a code character appears
+      we append it to <code>result</code>.
+      <div class="chunk" name="single pass for regularization">
+        else if (result == "") {
+          result += text[i];
+        }
+      </div>
+      Now, <code>result</code> is not empty any more, and thus <code>indentation</code>
+      is fixed.
+      We continue appending new code character to <code>result</code> until we meet a
+      newline. In this case, we set <code>counting</code> to <code>true</code>, and
+      start counting whitespaces. The counting ends when we encounter a code character.
+      Since this maybe the last line, which shall not end with newline, we temporarily
+      do not append this newline character <code>\n</code> to <code>result</code> until
+      encountering a code character.
+      <div class="chunk" name="single pass for regularization">
+        else if (text[i] == '\n') {
+          whitespaceCount = 0;
+          counting = true;
+        }
+      </div>
+      Then, we continue counting whitespaces until we meet a code character.
+      <div class="chunk" name="single pass for regularization">
+        else if ((counting == true) && (text[i] == ' ')) {
+          whitespaceCount++;
+        }
+      </div>
+      When we meet a character which is neither newline or whitespace, we find a
+      code character. We first append a newline character. Then, we stop counting,
+      and append the correct number of whitespaces in front of the line of code.
+      (We also check that <code>whitespaceCount</code> is greater than <code>indentation</code>,
+      as it should be.)
+      In the end, we append the code character to <code>result</code>.
+      <div class="chunk" name="single pass for regularization">
+        else if (counting == true) {
+          result += "\n";
+          counting = false;
+          if (whitespaceCount < indentation) throw new Error("Indentation error");
+          for (var j = 0; j < (whitespaceCount - indentation); j++) result += " ";
+          result += text[i];
+        }
+      </div>
+      We have dealt with the whitespaces in front of a line of code. Before going
+      into the next line, all we need to do is appending new code characters to
+      <code>result</code>.
+      <div class="chunk" name="single pass for regularization">
+        else {
+          result += text[i];
+        }
+      </div>
+      Up to now, we have solved the problem in front of each line of code. The previous
+      example is thus regualrized to
+      <pre><code>
+        &lt;pre&gt;&lt;code&gt;<strong></strong>if<strong>\s</strong>(i<strong>\s</strong>=<strong>\s</strong>0)<strong>\s</strong>{<strong>\n\s\s</strong>i++;<strong>\n</strong>}&lt;/code&gt;&lt;/pre&gt;
+      </code></pre>
+      which is what we intend to write. In addition, this process will exclude any
+      whitespace and newline in the end of the code block. So, we arrive at the end
+      of this function, and return the <code>result;</code>
+      <div class="chunk" name="define regularization">
+        return result;
+      </div>
+    </p>
+
     <h3>Weave Chunks</h3>
 
     <h3>Weave All</h3>
     Now, we have had the all the functions for weaving. The order of weaving
     chunk references and chunks is irrelevant. So,
-    <div class="chunk" name="weave all" export>
+    <div class="chunk" name="weave all">
       function weave() {
         <span class="chunkref">weave chunk references</span>
         <span class="chunkref">weave chunks</span>
@@ -378,14 +504,126 @@
     <p>
       We tangle a chunk by calling <code>tangle(chunkName)</code> function, where
       <code>chunkName</code> is a string.
-
+      <div class="chunk" name="tangle">
+        function tangle(chunkName) {
+          <span class="chunkref">define tangle</span>
+        }
+      </div>
       This function first creates an HTML element as the environment for wrapping
-      the tangled code. Usually a <code>pre</code> element.
-
-      Then, we collect all chunks that have the name <code>chunkName</code>.
+      the tangled code. Usually a <code>&lt;pre&gt;&lt;code&gt;</code> element.
+      <div class="chunk" name="create environment for the tangled code">
+        var env = document.createElement("pre");
+        env.append(document.createElement("code"));
+      </div>
+      This environment is to be displayed in a new window, after cliking the "⟨chunk name⟩≡".
+      Notice that we cannot write <code>env</code> itself, which will be displayed
+      as <code>[object HTMLPreElement]</code>. Instead, we use its <code>outerHTML</code>.
+      <div class="chunk" name="display environment in a new window">
+        var win = window.open('about:blank', '_blank');
+        win.document.write(env.outerHTML);
+        win.document.close();
+      </div>
+      Thus,
+      <div class="chunk" name="define tangle">
+        <span class="chunkref">create environment for the tangled code</span>
+        env.innerHTML = _tangle(chunkName);
+        <span class="chunkref">display environment in a new window</span>
+      </div>
+      where <code>_tangle</code> is a function that simply takes a chunk name and
+      returns the tangled code.
+      <div class="chunk" name="_tangle">
+        function _tangle(chunkName) {
+          <span class="chunkref">define _tangle</span>
+        }
+      </div>
+    </p>
+    <p>
+      To define <code>_tangle</code>, we first collect all chunks that have the name
+      <code>chunkName</code>.
       As stated in a <a href="#share-chunk-name">previous section</a>, there can be
       multiple chunks with the same name.
-    </p>
+      <div class="chunk" name="define _tangle">
+        var code = "";
+        var chunks = document.getElementsByName(chunkName);
+        for (var i = 0; i < chunks.length; i++) {
+          if (chunks[i].getAttribute("class") != "chunk") continue;
+          <span class="chunkref">tangle each chunk</span>
+        }
+      </div>
+      For each chunk we find, we first unweave it. Since we will replace chunk
+      references in it with the corresponding tangled code, that is, we will inplace
+      manipulate it, we need to make a copy of it, a deep copy.
+      <div class="chunk" name="tangle each chunk">
+        var unwoven = unweave(chunk).cloneNode(true);
+      </div>
+      To find a chunk reference and replace it with the code in the refered chunk,
+      we must take care. Replacing the chunk reference with the corresponding code
+      will modify the children of the unwoven chunk, so using for-loop like
+      <pre><code>
+        for (int i = 0; i < unwoven.getElementsByClass("chunkref").length; i++)
+      </code></pre>
+      leads to mistakes. Instead, we employ a function that get the first child of
+      the unwoven chunk that represents a chunk reference. After replacement, the
+      first child of chunk reference will automatically turns to the next.
+      <div class="chunk" name="tangle each chunk">
+        /* Deal with chunk references */
+        var chunkRef = getFirstChildByClass(unwoven, "chunkref");
+        while (chunkRef != undefined) {
+          <span class="chunkref">replace chunk reference</span>
+          chunkRef = getFirstChildByClass(unwoven, "chunkref");
+        }
+      </div>
+      The implementation of <code>getFirstChildByClass</code> is straight forward.
+      <div class="chunk" name="get first child by class">
+        function getFirstChildByClass(node, className) {
+          for (var i = 0; i < node.children.length; i++) {
+            var child = node.children[i];
+            if (child.getAttribute("class") == className) {
+              return child;
+            }
+          }
+          return undefined;
+        }
+      </div>
+      For the replacement, we first get the refered chunk name. To distinguish
+      the input <code>chunkName</code>, we call it <code>subChunkName</code>.
+      <div class="chunk" name="replace chunk reference">
+        var subChunkName = unweave(chunkRef).innerHTML;
+      </div>
+      Then, we get the tangled code by <strong>recursion!</strong>
+      (Again, we call it <code>subcode</code>).
+      <div class="chunk" name="replace chunk reference">
+        var subcode = _tangle(subChunkName);
+      </div>
+      Very simple, isn't it? Remark that, if the refered chunk is a block chunk,
+      which involve multiple lines, then we have to indent the second, third, ...
+      lines of the <code>subcode</code> so that they share the same indentation.
+      (The first line has correct indentation, since it is written by you.) So,
+      for a block chunk, we have to determine the indentation and add it to each
+      line.
+      <div class="chunk" name="replace chunk reference">
+        /* Block chunk needs indentation */
+        if (chunks[i].tagName == "DIV") {
+          var indentation = getIndentation(chunkRef);
+          subcode = indent(subcode, indentation);
+        }
+      </div>
+      All is done and we simply replace the node.
+      <div class="chunk" name="replace chunk reference">
+        unwoven.replaceChild(document.createTextNode(subcode), chunkRef);
+      </div>
 
+      <div class="chunk" name="tangle each chunk">
+        code += unescapeHTML(unwoven.innerHTML);
+        if (i < chunks.length - 1) code += "\n";
+      </div>
+
+      Before returning the tangled code, we have to escape HTML tags so as to
+      be properly displayed in browser.
+      <div class="chunk" name="define _tangle">
+        code = escapeHTML(code);
+        return code;
+      </div>
+    </p>
   </body>
 </html>

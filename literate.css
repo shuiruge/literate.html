@@ -33,4 +33,7 @@ pre code {
   border-width: medium;
   overflow-x: auto;
   margin: 1em;
+  padding-left: 3em;
+  padding-top: 1em;
+  padding-bottom: 1em;
 }
