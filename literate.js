@@ -93,19 +93,28 @@ function regularizeCodeBlock(text) {
     else if (text[i] == '\n') {
       whitespaceCount = 0;
       counting = true;
+      result += text[i];
     }
     else if ((counting == true) && (text[i] == ' ')) {
       whitespaceCount++;
     }
     else if (counting == true) {
       counting = false;
-      result += "\n";
       if (whitespaceCount < indentation) throw new Error("Indentation error");
       for (var j = 0; j < (whitespaceCount - indentation); j++) result += " ";
       result += text[i];
     }
     else {
       result += text[i];
+    }
+  }
+
+  for (var i = (result.length - 1); i >= 0; i--) {
+    if (result[i] == '\n') {
+      result = result.substring(0, i);
+    }
+    else {
+      break;
     }
   }
   return result;

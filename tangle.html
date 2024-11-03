@@ -1,13 +1,21 @@
 <!doctype html>
 <html>
   <head>
+    <meta charset="utf-8">
     <title>Tangle in HTML</title>
+    <style>
+      body {
+        max-width: 7in;
+        background-color: #c7edcc;
+    }
+    </style>
   </head>
+
   <body>
     <h1>Tangle in HTML</h1>
 
     <p>
-      We are to improve the code given by <a href="http://www.axiom-developer.org/axiom-website/\litprog.html">
+      We are to improve the code given by <a href="http://www.axiom-developer.org/axiom-website/litprog.html">
       Tim Daly</a>.
     </p>
 
@@ -18,7 +26,7 @@
       So, there is no need to weave.
     </p>
     <p>
-      Yet another benefit is that HTML (or XML) provides a standard for markup languages.
+      Yet another benefit is that HTML provides a standard for markup languages.
       Any other markup formats (such as markdown) can be safely converted to HTML.
     </p>
 
@@ -105,8 +113,11 @@
       There are many choices for indicating a chunk. For example, <code>CWEB</code> uses
       <code>@&lt;chunkname@&gt;</code>. Since we are dealing with HTML, we use a void HTML
       tag called <code>chunk</code>.
-      We believe that, in any program, there is no piece of code to be as complex as
-      <code>&lt;chunk id="..."&gt;</code>.
+      This tag has the unique format <code>&lt;chunk id="chunkname"&gt;</code>.
+      Remark that <em>only a single whitespace between "chunk" and "id"</em>.
+      <em>Any other format (such as <code>&lt;chunk  id="chunkname"&gt;</code>) is invalid.</em>
+      This chunk indicator is sufficiently complex for avoiding confliction with the code
+      in any programming language. It is also simple enough for typing.
     </p>
     
     <h3>Indentation</h3>
@@ -184,6 +195,7 @@
       &lt;chunk id="global variable"&gt;
 
       int main(int argc, char* argv[]) {
+        /* check arguments */
         if (argc != 2) { 
           perror("Usage: tangle filename chunkname");
           exit(-1);
@@ -234,9 +246,8 @@
     <p>TODO</p>
     <pre id="unescape HTML">
       /* Unescape HTML */
-      int point = 0;
       int mark = 0;
-      for(point = 0; point < buffer_size;) {
+      for(int point = 0; point < buffer_size;) {
         if ((buffer[point] == '&') &&
             (strncmp(&buffer[point+1], "lt;", 3) == 0)) {
           buffer[mark++] = '<';
@@ -275,8 +286,15 @@
       with the new chunk name.
       After finishing the call, it naturally goes back to the previous printing.
       Another problem is the indentation. We have to pass the indentation to the
-      <code>get_chunk</code> as an argument.
+      <code>get_chunk</code> as an argument:
+      <code>get_chunk(char* chunk_name, int indentation)</code>
     </p>
+    <pre id="global variable">
+      &lt;chunk id="get chunk function"&gt;
+    </pre>
+    <pre id="get chunk">
+      get_chunk(chunk_name, 0);
+    </pre>
 
     <h4>Tag</h4>
     <p>
@@ -297,88 +315,100 @@
       without considering indentation.
     </p>
     <pre id="get_chunk function without indentation">
-      int get_chunk(char* chunk_name) {
-        /* initialize */
+      void get_chunk(char* chunk_name) {
         int chunk_name_len = strlen(chunk_name);
         State state = OUT_OF_TAG;
         int found_chunk = 0;
-
-        for (position = 0; position < buffer_size;) {
-
-          /* OUT_OF_TAG -> READING_START_TAG */
-          if ((state == OUT_OF_TAG) && (position == buffer_size-1)) return 0;
-          if ((state == OUT_OF_TAG) && (buffer[i] == '<') && (buffer[i+1] >= 97) && (buffer[i+1] <= 122)) {
-            state = READING_START_TAG;
-            position++;
-            continue;
-          }
-
-          /* match id="chunk_name" */
-          if ((state == READING_START_TAG) && (position >= (buffer_size - chunk_name_len - 5))) return 0;
-          if (
-            (state == READING_START_TAG) &&
-            (strncmp(&buffer[position], "id=\"", 4) == 0) &&
-            (strncmp(&buffer[position+4], chunk_name, chunk_name_len) == 0) &&
-            (strncmp(&buffer[position+4+chunk_name_len], "\"", 1) == 0)
-          ) {
-            found_chunk = 1;
-            position += chunk_name_len + 5;
-            continue;
-          }
-
-          /* READING_START_TAG -> READING_CONTENT */
-          if ((state == READING_START_TAG) && (buffer[position] == '>')) {
-            state = READING_CONTENT;
-            /* Move to the start of the content */
-            while ((buffer[position] == '\s') || (buffer[position] == '\n')) {
-              position++;
-              if (position >= buffer_size) return 0;
-            }
-          }
-
-          /* READING_CONTENT -> READING_END_TAG */
-          if ((state == READING_CONTENT) && postion >= buffer_size-1) return 0;
-          if ((state == READING_CONTENT) && (buffer[position] == '<') && (buffer[position+1] == '/')) {
-            state = READING_END_TAG;
-            position++;
-            continue;
-          }
-
-          /* READING_END_TAG -> OUT_OF_TAG */
-          if ((state == READING_END_TAG) && (buffer[position] == '>')) {
-            state = OUT_OF_TAG;
-            position++;
-            continue;
-          }
-
-          /* dealing with a new chunk */
-          if (
-            (state == READING_CONTENT) &&
-            (found_chunk == 1) &&
-            (strncmp(&buffer[position], "&lt;chunk id=\"", 11))
-          ) {
-            position += 11;
-
-            /* malloc new chunk */
-            int new_chunk_len;
-            for (new_chunk_len = 0; (position + new_chunk_len) < buffer_size; new_chunk_len++) {
-              if (buffer[position+new_chunk_len] == '\"') break;
-            }
-            char* new_chunk = malloc(sizeof(char)*(new_chunk_len+1))
-            strncpy(new_chunk, &buffer[position], new_chunk_len);
-            new_chunk[new_chunk_len+1] = '\0';
-
-            position += new_chunk_len + 1;  /* also the '>' */
-            get_chunk(new_chunk);
-            free(new_chunk);
-          }
-
-          /* print chunk */
-          if ((state == READING_CONTENT) && (found_chunk == 1)) {
-            printf("%c", buffer[position]);
-            position++;
-          }
+        for (int position = 0; position < buffer_size;) {
+          &lt;chunk id="OUT_OF_TAG -> READING_START_TAG"&gt;
+          &lt;chunk id="match chunk name"&gt;
+          &lt;chunk id="READING_START_TAG -> READING_CONTENT"&gt;
+          &lt;chunk id="READING_CONTENT -> READING_END_TAG"&gt;
+          &lt;chunk id="READING_END_TAG -> OUT_OF_TAG"&gt;
+          &lt;chunk id="dealing with a new chunk"&gt;
+          &lt;chunk id="print chunk"&gt;
         }
+      }
+    </pre>
+    <pre id="OUT_OF_TAG -> READING_START_TAG">
+      /* OUT_OF_TAG -> READING_START_TAG */
+      if ((state == OUT_OF_TAG) && (position == (buffer_size - 1))) return;
+      if ((state == OUT_OF_TAG) && (buffer[i] == '<') && (buffer[i+1] >= 97) && (buffer[i+1] <= 122)) {
+        state = READING_START_TAG;
+        position++;
+        continue;
+      }
+    </pre>
+    <pre id="match chunk name">
+      /* match id="chunk_name" */
+      if ((state == READING_START_TAG) && (position >= (buffer_size - chunk_name_len - 5))) return;
+      if (
+        (state == READING_START_TAG) &&
+        (strncmp(&buffer[position], "id=\"", 4) == 0) &&
+        (strncmp(&buffer[position+4], chunk_name, chunk_name_len) == 0) &&
+        (strncmp(&buffer[position+4+chunk_name_len], "\"", 1) == 0)
+      ) {
+        found_chunk = 1;
+        position += chunk_name_len + 5;
+        continue;
+      }
+    </pre>
+    <pre id="READING_START_TAG -> READING_CONTENT">
+      /* READING_START_TAG -> READING_CONTENT */
+      if ((state == READING_START_TAG) && (buffer[position] == '>')) {
+        state = READING_CONTENT;
+        /* Move to the start of the content */
+        while ((buffer[position] == '\s') || (buffer[position] == '\n')) {
+          position++;
+          if (position >= buffer_size) return;
+        }
+      }
+    </pre>
+    <pre id="READING_CONTENT -> READING_END_TAG">
+      /* READING_CONTENT -> READING_END_TAG */
+      if ((state == READING_CONTENT) && (postion >= (buffer_size - 1))) return;
+      if ((state == READING_CONTENT) && (buffer[position] == '<') && (buffer[position+1] == '/')) {
+        state = READING_END_TAG;
+        position++;
+        continue;
+      }
+    </pre>
+    <pre id="READING_END_TAG -> OUT_OF_TAG">
+      /* READING_END_TAG -> OUT_OF_TAG */
+      if ((state == READING_END_TAG) && (buffer[position] == '>')) {
+        state = OUT_OF_TAG;
+        position++;
+        continue;
+      }
+    </pre>
+    <pre id="dealing with a new chunk">
+      /* dealing with a new chunk */
+      if (
+        (state == READING_CONTENT) &&
+        (found_chunk == 1) &&
+        (strncmp(&buffer[position], "&lt;chunk id=\"", 11))
+      ) {
+        position += 11;
+
+        /* malloc new chunk */
+        int new_chunk_len;
+        for (new_chunk_len = 0; (position + new_chunk_len) < buffer_size; new_chunk_len++) {
+          if (buffer[position+new_chunk_len] == '\"') break;
+        }
+        char* new_chunk = malloc(sizeof(char)*(new_chunk_len+1))
+        strncpy(new_chunk, &buffer[position], new_chunk_len);
+        new_chunk[new_chunk_len+1] = '\0';
+
+        position += new_chunk_len + 1;  /* also the '>' */
+        get_chunk(new_chunk);
+        free(new_chunk);
+      }
+    </pre>
+    <pre id="print chunk">
+      /* print chunk */
+      if ((state == READING_CONTENT) && (found_chunk == 1)) {
+        printf("%c", buffer[position]);
+        position++;
       }
     </pre>
 
@@ -394,25 +424,6 @@
     </pre>
     <pre id="get_chunk function">
       void get_chunk(char* chunk_name, int indent) {
-        int chunk_name_len = strlen(chunk_name);
-        Curser curser = {0};
-
-        int position = 0;
-        while (position < buffer_size) {
-          if (printing == 0) {
-            @{find_chunk}
-            if (found == 1) {
-              @{jump to the next line}
-            } else {
-              position++;
-            }
-          } else if ()
-            
-            if (strncmp(&buffer[position], "@{", 2) == 0)
-            printf("%c", buffer[i]);
-          }
-        }
-
       }
     </pre>
 

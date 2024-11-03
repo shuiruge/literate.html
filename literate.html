@@ -378,7 +378,7 @@
         var whitespaceCount = 0;
         var counting = false;
         for (var i = 0; i < text.length; i++) {
-          <span class="chunkref">single pass for regularization</span>
+          <span class="chunkref">walk through text for regularization</span>
         }
       </div>
 
@@ -386,7 +386,7 @@
       <code>result</code> is empty. In this case, we omit the newlines. 
       If we have not encountered any character of the code block, but whitespace,
       indicating that this maybe the first line of code, we increase <code>indentation</code>.
-      <div class="chunk" name="single pass for regularization">
+      <div class="chunk" name="walk through text for regularization">
         if ((result == "") && (text[i] == ' ')) {
           indentation++;
         }
@@ -394,7 +394,7 @@
       But, it maybe an empty line, a line with only whitespaces. So, after a newline
       break, we reset the <code>indentation</code>, expecting for the first line of
       code.
-      <div class="chunk" name="single pass for regularization">
+      <div class="chunk" name="walk through text for regularization">
         if ((result == "") && (text[i] == '\n')) {
           indentation = 0;
         }
@@ -402,7 +402,7 @@
       Now we have considered the case when <code>result</code> is empty, and only
       encountering the newline and whitespace. Now, if a code character appears
       we append it to <code>result</code>.
-      <div class="chunk" name="single pass for regularization">
+      <div class="chunk" name="walk through text for regularization">
         else if (result == "") {
           result += text[i];
         }
@@ -412,30 +412,28 @@
       We continue appending new code character to <code>result</code> until we meet a
       newline. In this case, we set <code>counting</code> to <code>true</code>, and
       start counting whitespaces. The counting ends when we encounter a code character.
-      Since this maybe the last line, which shall not end with newline, we temporarily
-      do not append this newline character <code>\n</code> to <code>result</code> until
-      encountering a code character.
-      <div class="chunk" name="single pass for regularization">
+      In the end, do not forget to append this newline character to <code>result</code>.
+      <div class="chunk" name="walk through text for regularization">
         else if (text[i] == '\n') {
           whitespaceCount = 0;
           counting = true;
+          result += text[i];
         }
       </div>
       Then, we continue counting whitespaces until we meet a code character.
-      <div class="chunk" name="single pass for regularization">
+      <div class="chunk" name="walk through text for regularization">
         else if ((counting == true) && (text[i] == ' ')) {
           whitespaceCount++;
         }
       </div>
       When we meet a character which is neither newline or whitespace, we find a
-      code character. We first append a newline character. Then, we stop counting,
-      and append the correct number of whitespaces in front of the line of code.
+      code character. Then, we stop counting, and append the correct number of
+      whitespaces in front of the line of code.
       (We also check that <code>whitespaceCount</code> is greater than <code>indentation</code>,
       as it should be.)
       In the end, we append the code character to <code>result</code>.
-      <div class="chunk" name="single pass for regularization">
+      <div class="chunk" name="walk through text for regularization">
         else if (counting == true) {
-          result += "\n";
           counting = false;
           if (whitespaceCount < indentation) throw new Error("Indentation error");
           for (var j = 0; j < (whitespaceCount - indentation); j++) result += " ";
@@ -445,7 +443,7 @@
       We have dealt with the whitespaces in front of a line of code. Before going
       into the next line, all we need to do is appending new code characters to
       <code>result</code>.
-      <div class="chunk" name="single pass for regularization">
+      <div class="chunk" name="walk through text for regularization">
         else {
           result += text[i];
         }
@@ -453,11 +451,23 @@
       Up to now, we have solved the problem in front of each line of code. The previous
       example is thus regualrized to
       <pre><code>
-        &lt;pre&gt;&lt;code&gt;<strong></strong>if<strong>\s</strong>(i<strong>\s</strong>=<strong>\s</strong>0)<strong>\s</strong>{<strong>\n\s\s</strong>i++;<strong>\n</strong>}&lt;/code&gt;&lt;/pre&gt;
+        &lt;pre&gt;&lt;code&gt;<strong></strong>if<strong>\s</strong>(i<strong>\s</strong>=<strong>\s</strong>0)<strong>\s</strong>{<strong>\n\s\s</strong>i++;<strong>\n</strong>}<strong>\n</strong>&lt;/code&gt;&lt;/pre&gt;
       </code></pre>
-      which is what we intend to write. In addition, this process will exclude any
-      whitespace and newline in the end of the code block. So, we arrive at the end
-      of this function, and return the <code>result;</code>
+      Notice that there is an extra newline character in the end of the code block.
+      And in other cases, there may be multiple newlines in the end of the code block.
+      To remove it, we iterate the result in backward direction and remove newlines
+      until encountering another character.
+      <div class="chunk" name="define regularization">
+        for (var i = (result.length - 1); i >= 0; i--) {
+          if (result[i] == '\n') {
+            result = result.substring(0, i);
+          }
+          else {
+            break;
+          }
+        }
+      </div>
+      Now, it becomes what we intend to write. It is safely to return the result.
       <div class="chunk" name="define regularization">
         return result;
       </div>
