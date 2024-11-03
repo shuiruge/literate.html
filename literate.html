@@ -600,8 +600,8 @@
         }
       </div>
       For each chunk we find, we first unweave it. Since we will replace chunk
-      references in it with the corresponding tangled code, that is, we will inplace
-      manipulate it, we need to make a copy of it, a deep copy.
+      references in it with the corresponding tangled code, that is, we will
+      manipulate it in-place, we need to make a copy of it, a deep copy.
       <div class="chunk" name="tangle each chunk">
         var unwoven = unweave(chunks[i]).cloneNode(true);
       </div>
