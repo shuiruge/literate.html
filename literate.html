@@ -734,48 +734,143 @@
     </p>
 
     <h2>Packaging</h2>
-    In the end of our literate programming journey, we put all these into one
-    JavaScript file, called <code>literate.js</code>.
-    <div class="chunk" name="literate.js">
-      /* Literate Programming in HTML */
 
-      <span class="chunkref">weave chunk reference</span>
+    <p>
+      In the end of our literate programming journey, we put all these into one
+      JavaScript file, called <code>literate.js</code>.
+      <div class="chunk" name="literate.js">
+        /* Literate Programming in HTML */
+  
+        <span class="chunkref">weave chunk reference</span>
+  
+        <span class="chunkref">unweave</span>
+  
+        <span class="chunkref">weave inline chunk</span>
+  
+        <span class="chunkref">weave block chunk</span>
+  
+        <span class="chunkref">regularize code block</span>
+  
+        <span class="chunkref">regularize all</span>
+  
+        <span class="chunkref">weave all</span>
+  
+        <span class="chunkref">tangle</span>
+  
+        <span class="chunkref">_tangle</span>
+  
+        <span class="chunkref">get first child by class</span>
+  
+        <span class="chunkref">get text before</span>
+  
+        <span class="chunkref">get indentation</span>
+  
+        <span class="chunkref">indent</span>
+      </div>
+  
+      On loading, we first call <code>regularize</code> for regularizing the code
+      blocks. And then calling <code>weave</code> for displaying the chunks and
+      chunk references in browser. The order of these two functions are crucial,
+      We shall first regularize the code for any modification (such as weaving).
+      So, <code>regularize</code> shall always be called in the first place.
+      <div class="chunk" name="literate.js">
+        onload = () => {
+          regularize();
+          weave();
+        }
+      </div>
+      Up to now, we have completed the JavaScript code for literate programming.
+    </p>
+   
+    <h2>Style</h2>
 
-      <span class="chunkref">unweave</span>
+    <p>
+      We use CSS to style the chunks and chunk references.
+    </p>
 
-      <span class="chunkref">weave inline chunk</span>
+    <h3>Code Block</h3>
+    <p>
+      We put code block into a block, of course. The block is wrapped by a dashed
+      grey border. We also adjust the position of the code, to move it toward the
+      center of the border.
+      <div class="chunk" name="code in pre style">
+        pre code {
+          display: block;
+          border-style: dashed;
+          border-color: grey;
+          border-width: medium;
+          overflow-x: auto;
+          margin: 1em;
+          padding-left: 3em;
+          padding-top: 1em;
+          padding-bottom: 1em;
+        }
+      </div>
+    </p>
 
-      <span class="chunkref">weave block chunk</span>
+    <h3>Chunk</h3>
 
-      <span class="chunkref">regularize code block</span>
+    <p>
+      For each chunk, we add a narrow margin to make it appear a litte isolated
+      from the content.
+      <div class="chunk" name="chunk style">
+        div.chunk {
+          margin-top: 1em;
+          margin-bottom: 1em;
+        }
+      </div>
+    </p>
 
-      <span class="chunkref">regularize all</span>
+    <h4>Block Chunk</h4>
+    <p>
+      For block chunk, we make the head bold.
+      <div class="chunk" name="block chunk head style">
+        .block-chunk-head {
+          font-weight: bold;
+        }
+      </div>
+      We use a dashed border instead of a underline for hyperlink, which triggers
+      <code>tangle</code>, for making it pretty.
+      <div class="chunk" name="block chunk head hyperlink style">
+        .block-chunk-head a {
+          border: 0.1em;
+          border-style: dashed;
+          text-decoration: none;
+          padding: 0.1em 0.1em;
+          margin: 0.1em;
+          color: black;
+        }
+      </div>
+    </p>
 
-      <span class="chunkref">weave all</span>
+    <h3>Inline Chunk</h3>
+    <p>
+      For inline chunk, we simply make the head bold and add a very narrow margin
+      to isolate it from the content.
+      <div class="chunk" name="inline chunk style">
+        .inline-chunk-head {
+          font-weight: bold;
+          margin-left: 0.1em;
+          margin-right: 0.1em;
+        }
+      </div>
+    </p>
 
-      <span class="chunkref">tangle</span>
+    <h3>CSS File</h3>
+    <p>
+      Put all these together, we get the following CSS file <code>literate.css</code>.
+      <div class="chunk" name="literate.css">
+        <span class="chunkref">code in pre style</span>
 
-      <span class="chunkref">_tangle</span>
+        <span class="chunkref">chunk style</span>
 
-      <span class="chunkref">get first child by class</span>
+        <span class="chunkref">block chunk head style</span>
 
-      <span class="chunkref">get text before</span>
+        <span class="chunkref">block chunk head hyperlink style</span>
 
-      <span class="chunkref">get indentation</span>
+        <span class="chunkref">inline chunk style</span>
+      </div>
+    </p>
 
-      <span class="chunkref">indent</span>
-    </div>
-
-    On loading, we first call <code>regularize</code> for regularizing the code
-    blocks. And then calling <code>weave</code> for displaying the chunks and
-    chunk references in browser. The order of these two functions are crucial,
-    We shall first regularize the code for any modification (such as weaving).
-    So, <code>regularize</code> shall always be called in the first place.
-    <div class="chunk" name="literate.js">
-      onload = () => {
-        regularize();
-        weave();
-      }
-    </div>
   </body>
 </html>

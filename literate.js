@@ -1,4 +1,4 @@
-/* Bootstrap literate.html */
+/* Literate Programming in HTML */
 
 function weaveChunkRef(chunkRef) {
   /* Create unwoven span */
@@ -29,13 +29,16 @@ function weaveInlineChunk(chunk) {
   unwoven.setAttribute("class", "unwoven");
   unwoven.setAttribute("hidden", true);
   unwoven.innerHTML = chunk.innerHTML;
+
   /* Create chunk head span */
   var chunkHead = document.createElement("span");
   chunkHead.setAttribute("class", "inline-chunk-head");
   chunkHead.innerHTML = `⟨${chunk.getAttribute("name")}⟩≡`;
+
   /* Create code */
   var code = document.createElement("code");
   code.innerHTML = chunk.innerHTML;
+
   /* Replace HTML */
   chunk.innerHTML = null;
   chunk.appendChild(chunkHead);
@@ -108,7 +111,6 @@ function regularizeCodeBlock(text) {
       result += text[i];
     }
   }
-
   for (var i = (result.length - 1); i >= 0; i--) {
     if (result[i] == '\n') {
       result = result.substring(0, i);
@@ -121,17 +123,17 @@ function regularizeCodeBlock(text) {
 }
 
 function regularize() {
+  var divs = document.getElementsByTagName("div");
+  for (var i = 0; i < divs.length; i++) {
+    if (divs[i].getAttribute("class") == "chunk") {
+      divs[i].innerHTML = regularizeCodeBlock(divs[i].innerHTML);
+    }
+  }
   var pres = document.getElementsByTagName("pre");
   for (var i = 0; i < pres.length; i++) {
     var codes = pres[i].getElementsByTagName("code");
     for (var j = 0; j < codes.length; j++) {
       codes[j].innerHTML = regularizeCodeBlock(codes[j].innerHTML);
-    }
-  }
-  var divs = document.getElementsByTagName("div");
-  for (var i = 0; i < divs.length; i++) {
-    if (divs[i].getAttribute("class") == "chunk") {
-      divs[i].innerHTML = regularizeCodeBlock(divs[i].innerHTML);
     }
   }
 }
@@ -165,16 +167,6 @@ function tangle(chunkName) {
   win.document.close();
 }
 
-function getFirstChildByClass(node, className) {
-  for (var i = 0; i < node.children.length; i++) {
-    var child = node.children[i];
-    if (child.getAttribute("class") == className) {
-      return child;
-    }
-  }
-  return undefined;
-}
-
 function _tangle(chunkName) {
   var code = "";
   var chunks = document.getElementsByName(chunkName);
@@ -202,20 +194,14 @@ function _tangle(chunkName) {
   return code;
 }
 
-function debugText(text) {
-  var result = "";
-  for (var i = 0; i < text.length; i++) {
-    if (text[i] == '\n') {
-      result += "\\n";
-    } else if (text[i] == '\t') {
-      result += "\\t";
-    } else if (text[i] == ' ') {
-      result += "\\s";
-    } else {
-      result += text[i];
+function getFirstChildByClass(node, className) {
+  for (var i = 0; i < node.children.length; i++) {
+    var child = node.children[i];
+    if (child.getAttribute("class") == className) {
+      return child;
     }
   }
-  return result;
+  return undefined;
 }
 
 function getTextBefore(node) {
@@ -248,7 +234,6 @@ function indent(text, indentation) {
   }
   return result;
 }
-
 onload = () => {
   regularize();
   weave();
