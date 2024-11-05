@@ -452,8 +452,8 @@
           result += text[i];
         }
       </div>
-      Up to now, we have solved the problem in front of each line of code. The previous
-      example is thus regularized to
+      Up to now, we have solved the problem in front of each line of code. The
+      previous example is regularized to
       <pre><code>
         &lt;pre&gt;&lt;code&gt;<strong></strong>if<strong>\s</strong>(i<strong>\s</strong>=<strong>\s</strong>0)<strong>\s</strong>{<strong>\n\s\s</strong>i++;<strong>\n</strong>}<strong>\n</strong>&lt;/code&gt;&lt;/pre&gt;
       </code></pre>
@@ -548,37 +548,11 @@
 
     <h2>Tangling</h2>
 
-    <h3>Tangled Code in Browser</h3>
+    <h3>Tangling Each Chunk</h3>
     <p>
-      We tangle a chunk by calling <code>tangle(chunkName)</code> function, where
-      <code>chunkName</code> is a string.
-      <div class="chunk" name="tangle">
-        function tangle(chunkName) {
-          <span class="chunkref">define tangle</span>
-        }
-      </div>
-      This function first creates an HTML element as the environment for wrapping
-      the tangled code. Usually a <code>&lt;pre&gt;&lt;code&gt;</code> element.
-      <div class="chunk" name="create environment for the tangled code">
-        var env = document.createElement("pre");
-        env.append(document.createElement("code"));
-      </div>
-      This environment is to be displayed in a new window, after clicking the "⟨chunk name⟩≡".
-      Notice that we cannot write <code>env</code> itself, which will be displayed
-      as <code>[object HTMLPreElement]</code>. Instead, we use its <code>outerHTML</code>.
-      <div class="chunk" name="display environment in a new window">
-        var win = window.open('about:blank', '_blank');
-        win.document.write(env.outerHTML);
-        win.document.close();
-      </div>
-      Thus,
-      <div class="chunk" name="define tangle">
-        <span class="chunkref">create environment for the tangled code</span>
-        env.innerHTML = _tangle(chunkName);
-        <span class="chunkref">display environment in a new window</span>
-      </div>
-      where <code>_tangle</code> is a function that simply takes a chunk name and
-      returns the tangled code.
+      The main process of tangling is implemented by a function <code>_tangle</code>,
+      which accepts a string <code>chunkName</code> and returns a string for the
+      tangled code:
       <div class="chunk" name="_tangle">
         function _tangle(chunkName) {
           var code = "";
@@ -587,8 +561,6 @@
         }
       </div>
     </p>
-
-    <h3>Tangling Each Chunk</h3>
     <p>
       To define <code>_tangle</code>, we first collect all chunks that have the name
       <code>chunkName</code>.
@@ -680,6 +652,33 @@
       </div>
     </p>
 
+    <h3>Display in Browser</h3>
+    <p>
+      By clicking the "⟨chunk name⟩≡", function <code>tangle(chunkName)</code> is
+      triggered. We popup a new window to show the tangled code, thus:
+      <div class="chunk" name="tangle">
+        function tangle(chunkName) {
+          var code = _tangle(chunkName);
+          <span class="chunkref">create HTML for the tangled code</span>
+          <span class="chunkref">display HTML in a new window</span>
+        }
+      </div>
+      We use the following HTML to display the tangled code:
+      <div class="chunk" name="create HTML for the tangled code">
+        html = `&lt;!doctype html&gt;&lt;html&gt;` +
+               `&lt;head&gt;&lt;meta charset="utf-8"&gt;&lt;title&gt;${chunkName}&lt;/title&gt;` +
+               `&lt;style&gt;body { background-color: #c7edcc; }&lt;/style&gt;&lt;/head&gt;` +
+               `&lt;body&gt;&lt;pre&gt;&lt;code&gt;${code}&lt;/code&gt;&lt;/pre&gt;&lt;/body&gt;` +
+               `&lt;/html&gt;`;
+      </div>
+      This HTML is to be displayed in a new window:
+      <div class="chunk" name="display HTML in a new window">
+        var win = window.open('about:blank', '_blank');
+        win.document.write(html);
+        win.document.close();
+      </div>
+    </p>
+
     <h3>Utility Functions</h3>
     <p>
       Before ending this section, we have to show how the functions <code>getIndentation</code>
@@ -761,9 +760,9 @@
   
         <span class="chunkref">weave all</span>
   
-        <span class="chunkref">tangle</span>
-  
         <span class="chunkref">_tangle</span>
+
+        <span class="chunkref">tangle</span>
   
         <span class="chunkref">get first child by class</span>
   

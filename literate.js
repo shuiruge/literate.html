@@ -160,15 +160,6 @@ function weave() {
   }
 }
 
-function tangle(chunkName) {
-  var env = document.createElement("pre");
-  env.append(document.createElement("code"));
-  env.innerHTML = _tangle(chunkName);
-  var win = window.open('about:blank', '_blank');
-  win.document.write(env.outerHTML);
-  win.document.close();
-}
-
 function _tangle(chunkName) {
   var code = "";
   var chunks = document.getElementsByName(chunkName);
@@ -194,6 +185,18 @@ function _tangle(chunkName) {
     if (i < chunks.length - 1) code += "\n";
   }
   return code;
+}
+
+function tangle(chunkName) {
+  var code = _tangle(chunkName);
+  html = `<!doctype html><html>` +
+         `<head><meta charset="utf-8"><title>${chunkName}</title>` +
+         `<style>body { background-color: #c7edcc; }</style></head>` +
+         `<body><pre><code>${code}</code></pre></body>` +
+         `</html>`;
+  var win = window.open('about:blank', '_blank');
+  win.document.write(html);
+  win.document.close();
 }
 
 function getFirstChildByClass(node, className) {
