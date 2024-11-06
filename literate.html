@@ -514,9 +514,12 @@
 
     <h3>Weave All</h3>
     Now, we have had the all the functions for weaving. The order of weaving
-    chunk references and chunks is irrelevant. So,
+    chunk references and chunks is irrelevant. So, after regularization, we weave
+    chunk references and chunks one by one. The order of weaving is irrelevant.
+    Here, we weave chunk references first.
     <div class="chunk" name="weave all">
       function weave() {
+        regularize();
         <span class="chunkref">weave chunk references</span>
         <span class="chunkref">weave chunks</span>
       }
@@ -774,18 +777,13 @@
         <span class="chunkref">get indentation</span>
   
         <span class="chunkref">indent</span>
+
+        <span class="chunkref">escape tag characters</span>
       </div>
   
-      On loading, we first call <code>regularize</code> for regularizing the code
-      blocks. And then calling <code>weave</code> for displaying the chunks and
-      chunk references in browser. The order of these two functions are crucial,
-      We shall first regularize the code for any modification (such as weaving).
-      So, <code>regularize</code> shall always be called in the first place.
+      On loading, we weave the page.
       <div class="chunk" name="literate.js">
-        onload = () => {
-          regularize();
-          weave();
-        }
+        onload = weave;
       </div>
       Up to now, we have completed the JavaScript code for literate programming.
     </p>

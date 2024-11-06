@@ -139,6 +139,7 @@ function regularize() {
 }
 
 function weave() {
+  regularize();
   /* Weave chunk references */
   var chunkRefs = document.getElementsByClassName("chunkref");
   for (var i = 0; i < chunkRefs.length; i++) {
@@ -239,7 +240,6 @@ function indent(text, indentation) {
   }
   return result;
 }
-onload = () => {
-  regularize();
-  weave();
-}
+
+
+onload = weave;
