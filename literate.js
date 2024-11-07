@@ -211,10 +211,11 @@ function getFirstChildByClass(node, className) {
 }
 
 function getTextBefore(node) {
-  var rangeBefore = document.createRange();
+  const rangeBefore = document.createRange();
   rangeBefore.setStart(node.parentNode.firstChild, 0);
   rangeBefore.setEndBefore(node);
-  return rangeBefore.toString();
+  const textBefore = rangeBefore.toString();
+  return textBefore;
 }
 
 function getIndentation(chunkRef) {
@@ -240,6 +241,6 @@ function indent(text, indentation) {
   }
   return result;
 }
-
-
-onload = weave;
+onload = () => {
+  weave();
+}

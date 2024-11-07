@@ -703,13 +703,20 @@
         void main() {
           (end here)
       </code></pre>
-      This is done by the following function (following <a href="https://stackoverflow.com/a/72545166/1218716">this answer</a>):
+      This is done by the following function (We follow
+        <a href="https://stackoverflow.com/a/72545166/1218716">this answer</a>.
+        This implementation, however, cannot deal with HTML tags properly.
+        Precisely, any HTML tag in the returned <code>textBefore</code> are excluded.
+        But since it is called for tangling, there is not HTML tags in the text
+        before the <code>node</code>, this implementation is still valid. Temporally,
+        I cannot figure out a better implementation.):
       <div class="chunk" name="get text before">
         function getTextBefore(node) {
-          var rangeBefore = document.createRange();
+          const rangeBefore = document.createRange();
           rangeBefore.setStart(node.parentNode.firstChild, 0);
           rangeBefore.setEndBefore(node);
-          return rangeBefore.toString();
+          const textBefore = rangeBefore.toString();
+          return textBefore;
         }
       </div>
       Then, directly, we count how many whitespace between the front of the chunk
@@ -777,13 +784,14 @@
         <span class="chunkref">get indentation</span>
   
         <span class="chunkref">indent</span>
-
-        <span class="chunkref">escape tag characters</span>
       </div>
   
-      On loading, we weave the page.
+      On loading, we weave the page (regularization has been included as a part
+      of <code>weave</code>).
       <div class="chunk" name="literate.js">
-        onload = weave;
+        onload = () => {
+          weave();
+        }
       </div>
       Up to now, we have completed the JavaScript code for literate programming.
     </p>
