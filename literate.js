@@ -1,16 +1,3 @@
-function weaveChunkRef(chunkRef) {
-  /* Create unwoven span */
-  var unwoven = document.createElement("span");
-  unwoven.setAttribute("class", "unwoven");
-  unwoven.setAttribute("hidden", true);
-  unwoven.innerHTML = chunkRef.innerHTML;
-  /* Replace HTML */
-  var chunkName = chunkRef.innerHTML;
-  chunkRef.innerHTML = null;
-  chunkRef.appendChild(document.createTextNode(`⟨${chunkName}⟩`));
-  chunkRef.appendChild(unwoven);
-}
-
 function unweave(elem) {
   for (var i = 0; i < elem.children.length; i++) {
     var child = elem.children[i];
@@ -19,6 +6,35 @@ function unweave(elem) {
     }
   }
   throw new Error(`[unweave] no unwoven span found in element: "${elem.innerHTML}"`);
+}
+
+function weaveChunkRef(chunkRef) {
+  /* Create unwoven span */
+  var unwoven = document.createElement("span");
+  unwoven.setAttribute("class", "unwoven");
+  unwoven.setAttribute("hidden", true);
+  unwoven.innerHTML = chunkRef.innerHTML;
+  /* Create id and link to the first chunk */
+  var id = null;
+  var chunkName = chunkRef.innerHTML;
+  var chunks = document.getElementsByName(chunkName);
+  for (var i = 0; i < chunks.length; i++) {
+    if (chunks[i].getAttribute("class") != "chunk") continue;
+    id = chunkName.replace(" ", "-");
+    chunks[i].setAttribute("id", id);
+    break;
+  }
+  if (id == null) throw new Error(`[weaveChunkRef] no chunk found for "${chunkName}"`);
+  var link = document.createElement("a");
+  link.setAttribute("href", `#${id}`);
+  link.setAttribute("class", "chunkref-link");
+  link.innerHTML = chunkName;
+  /* Replace HTML */
+  chunkRef.innerHTML = null;
+  chunkRef.appendChild(document.createTextNode("⟨"));
+  chunkRef.appendChild(link);
+  chunkRef.appendChild(document.createTextNode("⟩"));
+  chunkRef.appendChild(unwoven);
 }
 
 function weaveInlineChunk(chunk) {

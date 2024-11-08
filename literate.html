@@ -249,51 +249,15 @@
       more suitable for display and cooperating with CSS.
     </p>
 
-    <h3>Weaving Chunk Reference</h3>
-    <p>
-      We first deal with chunk reference. Recall that chunk reference has the format
-      <code>&lt;span class="chunkref"&gt;chunk name&lt;/span&gt;</code>.
-      We are to transcript it into ⟨chunk name⟩.
-    </p>
-    <p>
-      To do this, we replace the <code>innerHTML</code> of the <code>span</code>
-      element with "⟨chunk name⟩".
-      But, this will modify the original HTML, such that, at the time of tangling,
-      we cannot tangle from the original code. For dealing with this problem, we
-      shall store the original in a new <code>span</code> element with the class
-      "unwoven" and set it as hidden.
-      So, the code splits into two parts:
-      <div class="chunk" name="literate.js" append-newline>
-        function weaveChunkRef(chunkRef) {
-          <span class="chunkref">create unwoven span for weaving chunk reference</span>
-          <span class="chunkref">replace innerHTML for weaving chunk reference</span>
-        }
-      </div>
-      wherein,
-      <div class="chunk" name="create unwoven span for weaving chunk reference">
-        /* Create unwoven span */
-        var unwoven = document.createElement("span");
-        unwoven.setAttribute("class", "unwoven");
-        unwoven.setAttribute("hidden", true);
-        unwoven.innerHTML = chunkRef.innerHTML;
-      </div>
-      Now, we clean up the <code>chunkRef</code> element and add "⟨chunk name⟩" and
-      the unwoven <code>span</code> to it. But, before cleaning, we shall store the
-      chunk name, which is the <code>chunkRef.innerHTML</code>, in a new variable.
-      <div class="chunk" name="replace innerHTML for weaving chunk reference">
-        /* Replace HTML */
-        var chunkName = chunkRef.innerHTML;
-        chunkRef.innerHTML = null;
-        chunkRef.appendChild(document.createTextNode(`⟨${chunkName}⟩`));
-        chunkRef.appendChild(unwoven);
-      </div>
-    </p>
-
     <h3>Unweaving</h3>
     <p>
-      With the unwoven span, to unweave a chunk reference or a chunk in later,
-      all we need to do is iterating over the children nodes and find out the
-      element with class "unwoven". (If not found, throw an error.)
+      Weaving will in-place modify the <code>innerHTML</code> of chunks and chunk
+      references. Then, when we want to tangle them, we need to unweave them first.
+      For avoiding this complexity, we store the original chunk or chunk reference
+      in a new element (the same type as the original) with the class "unwoven"
+      and set it as hidden for not displaying in browser. Therefore, unweaving is
+      nothing but extracting the element with class "unwoven" from the woven.
+      (If not found, throw an error.)
       <div class="chunk" name="literate.js" append-newline>
         function unweave(elem) {
           for (var i = 0; i < elem.children.length; i++) {
@@ -304,6 +268,71 @@
           }
           throw new Error(`[unweave] no unwoven span found in element: "${elem.innerHTML}"`);
         }
+      </div>
+    </p>
+
+    <h3>Weaving Chunk Reference</h3>
+    <p>
+      We first deal with chunk reference. Chunk reference is displayed in the format
+      <pre><code>
+        ⟨&lt;a href="chunk-name"&gt;chunk name&lt;/a&gt;⟩&lt;/span&gt;
+      </code></pre>
+      within the original <code>&lt;span class="chunkref"&gt;</code> element.
+      The hyperlink links to the <em>first</em> chunk with the referred chunk name.
+      To do so, we have to add an <code>id</code> attribute to that first chunk.
+      <div class="chunk" name="literate.js" append-newline>
+        function weaveChunkRef(chunkRef) {
+          <span class="chunkref">create unwoven span for weaving chunk reference</span>
+          <span class="chunkref">create id and link to the first chunk</span>
+          <span class="chunkref">replace innerHTML for weaving chunk reference</span>
+        }
+      </div>
+      We create a <code>span</code> element for the unwoven, which stores the original
+      <code>innerHTML</code> before weaving. For not displaying the unwoven, we set
+      to be hidden.
+      <div class="chunk" name="create unwoven span for weaving chunk reference">
+        /* Create unwoven span */
+        var unwoven = document.createElement("span");
+        unwoven.setAttribute("class", "unwoven");
+        unwoven.setAttribute("hidden", true);
+        unwoven.innerHTML = chunkRef.innerHTML;
+      </div>
+      Then, find the first chunk with the referred chunk name, and add an <code>id</code>
+      to it for linking. Since there may be whitespace in the chunk name, which is
+      not valid in ID, we use "-" for replacing.
+      <div class="chunk" name="create id and link to the first chunk">
+        /* Create id and link to the first chunk */
+        var id = null;
+        var chunkName = chunkRef.innerHTML;
+        var chunks = document.getElementsByName(chunkName);
+        for (var i = 0; i < chunks.length; i++) {
+          if (chunks[i].getAttribute("class") != "chunk") continue;
+          id = chunkName.replace(" ", "-");
+          chunks[i].setAttribute("id", id);
+          break;
+        }
+      </div>
+      If there is no chunk with the referred chunk name, there must be something
+      wrong, we raise an error.
+      <div class="chunk" name="create id and link to the first chunk">
+        if (id == null) throw new Error(`[weaveChunkRef] no chunk found for "${chunkName}"`);
+      </div>
+      Then, we create the link to the first chunk.
+      <div class="chunk" name="create id and link to the first chunk">
+        var link = document.createElement("a");
+        link.setAttribute("href", `#${id}`);
+        link.setAttribute("class", "chunkref-link");
+        link.innerHTML = chunkName;
+      </div>
+      Now, we clean up the <code>chunkRef</code> element and add the link and
+      the unwoven <code>span</code> to it.
+      <div class="chunk" name="replace innerHTML for weaving chunk reference">
+        /* Replace HTML */
+        chunkRef.innerHTML = null;
+        chunkRef.appendChild(document.createTextNode("⟨"));
+        chunkRef.appendChild(link);
+        chunkRef.appendChild(document.createTextNode("⟩"));
+        chunkRef.appendChild(unwoven);
       </div>
     </p>
 
@@ -329,8 +358,7 @@
         code.innerHTML = chunk.innerHTML;
       </div>
       Again, we shall append an unwoven span to the inline chunk. So, we simply
-      follow the code in <span class="chunkref">weave chunk reference</span>,
-      with a little adaptation.
+      follow the code in <code>weaveChunkRef</code> with a little adaptation.
       <div class="chunk" name="literate.js" append-newline>
         function weaveInlineChunk(chunk) {
           /* Create unwoven span */
@@ -386,7 +414,7 @@
         chunkHead.appendChild(document.createTextNode("⟩≡"));
       </div>
       The unwoven now becomes a <code>div</code> element. So, the code for weaving
-      block chunk simply an adaptation of <span class="chunkref">weave inline chunk</span>.
+      block chunk simply an adaptation of <code>weaveInlineChunk</code>.
       <div class="chunk" name="literate.js" append-newline>
         function weaveBlockChunk(chunk) {
           /* Create unwoven span */
@@ -679,7 +707,7 @@
         code += unwoven.innerHTML;
         if (i < chunks.length - 1) code += "\n";
       </div>
-      If the chunk <a href="#appending-newline">has an "append-newline" attribute</a>,
+      If the chunk has an <a href="#appending-newline">"append-newline" attribute</a>,
       we append a newline character to the end of the code string according to its
       value.
       <div class="chunk" name="tangle each chunk">
@@ -736,7 +764,7 @@
     <h3>Replacing Chunk Reference</h3>
     <p>
       For the replacement, we first get the referred chunk name. To distinguish
-      the input <code>chunkName</code>, we call it <code>subChunkName</code>.
+      with the input <code>chunkName</code>, we call it <code>subChunkName</code>.
       <div class="chunk" name="replace chunk reference">
         var subChunkName = unweave(chunkRef).innerHTML;
       </div>
@@ -915,6 +943,22 @@
       </div>
     </p>
 
+    <h3>Chunk Reference</h3>
+
+    <p>
+      For chunk reference, we delete the ugly underline of hyperlink, which links
+      to the first chunk with the referred name, and pad a little for making it
+      pretty. The original hyperlink color is too bright, we use darkblue instead.
+      <div class="chunk" name="literate.css">
+        .chunkref a {
+          color: darkblue;
+          text-decoration: none;
+          padding-left: 0.1em;
+          padding-right: 0.1em;
+        }
+      </div>
+    </p>
+
     <h3>Chunk</h3>
 
     <p>
@@ -937,9 +981,7 @@
           font-weight: bold;
         }
       </div>
-      We delete the ugly underline of hyperlink, which triggers <code>tangle</code>,
-      and pad a little for making it pretty. The original hyperlink color is too
-      bright, we use darkblue instead.
+      For the link in the block chunk, we use the same style as chunk reference.
       <div class="chunk" name="literate.css">
         .block-chunk-head a {
           text-decoration: none;
