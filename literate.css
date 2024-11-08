@@ -1,3 +1,9 @@
+code {
+  border-style: dashed;
+  border-width: 0.1em;
+  padding-left: 0.3em;
+  padding-right: 0.3em;
+}
 pre code {
   display: block;
   border-style: dashed;
@@ -10,27 +16,21 @@ pre code {
   padding-top: 1em;
   padding-bottom: 1em;
 }
-
 div.chunk {
   margin-top: 1em;
   margin-bottom: 1em;
 }
-
 .block-chunk-head {
   font-weight: bold;
 }
-
 .block-chunk-head a {
-  border: 0.1em;
-  border-style: dashed;
   text-decoration: none;
-  padding: 0.1em 0.1em;
-  margin: 0.1em;
-  color: black;
+  padding-left: 0.1em;
+  padding-right: 0.1em;
+  color: darkblue;
 }
-
 .inline-chunk-head {
   font-weight: bold;
-  margin-left: 0.1em;
-  margin-right: 0.1em;
+  padding-left: 0.1em;
+  padding-right: 0.1em;
 }

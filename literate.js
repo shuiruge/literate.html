@@ -1,5 +1,3 @@
-/* Literate Programming in HTML */
-
 function weaveChunkRef(chunkRef) {
   /* Create unwoven span */
   var unwoven = document.createElement("span");
@@ -12,7 +10,6 @@ function weaveChunkRef(chunkRef) {
   chunkRef.appendChild(document.createTextNode(`⟨${chunkName}⟩`));
   chunkRef.appendChild(unwoven);
 }
-
 function unweave(elem) {
   for (var i = 0; i < elem.children.length; i++) {
     var child = elem.children[i];
@@ -22,7 +19,6 @@ function unweave(elem) {
   }
   throw new Error("[unweave] no unwoven span found in element: " + elem.innerHTML);
 }
-
 function weaveInlineChunk(chunk) {
   /* Create unwoven span */
   var unwoven = document.createElement("span");
@@ -45,7 +41,6 @@ function weaveInlineChunk(chunk) {
   chunk.appendChild(code);
   chunk.appendChild(unwoven);
 }
-
 function weaveBlockChunk(chunk) {
   /* Create unwoven span */
   var unwoven = document.createElement("div");
@@ -77,7 +72,6 @@ function weaveBlockChunk(chunk) {
   chunk.appendChild(pre);
   chunk.appendChild(unwoven);
 }
-
 function regularizeCodeBlock(text) {
   var result = "";
   var indentation = 0;
@@ -121,7 +115,6 @@ function regularizeCodeBlock(text) {
   }
   return result;
 }
-
 function regularize() {
   var divs = document.getElementsByTagName("div");
   for (var i = 0; i < divs.length; i++) {
@@ -137,7 +130,6 @@ function regularize() {
     }
   }
 }
-
 function weave() {
   regularize();
   /* Weave chunk references */
@@ -160,7 +152,6 @@ function weave() {
     }
   }
 }
-
 function _tangle(chunkName) {
   var code = "";
   var chunks = document.getElementsByName(chunkName);
@@ -187,7 +178,15 @@ function _tangle(chunkName) {
   }
   return code;
 }
-
+function getFirstChildByClass(node, className) {
+  for (var i = 0; i < node.children.length; i++) {
+    var child = node.children[i];
+    if (child.getAttribute("class") == className) {
+      return child;
+    }
+  }
+  return undefined;
+}
 function tangle(chunkName) {
   var code = _tangle(chunkName);
   html = `<!doctype html><html>` +
@@ -199,17 +198,6 @@ function tangle(chunkName) {
   win.document.write(html);
   win.document.close();
 }
-
-function getFirstChildByClass(node, className) {
-  for (var i = 0; i < node.children.length; i++) {
-    var child = node.children[i];
-    if (child.getAttribute("class") == className) {
-      return child;
-    }
-  }
-  return undefined;
-}
-
 function getTextBefore(node) {
   const rangeBefore = document.createRange();
   rangeBefore.setStart(node.parentNode.firstChild, 0);
@@ -217,7 +205,6 @@ function getTextBefore(node) {
   const textBefore = rangeBefore.toString();
   return textBefore;
 }
-
 function getIndentation(chunkRef) {
   var textBefore = getTextBefore(chunkRef);
   var indentation = 0;
@@ -230,7 +217,6 @@ function getIndentation(chunkRef) {
   }
   return indentation;
 }
-
 function indent(text, indentation) {
   var result = "";
   for (var i = 0; i < text.length; i++) {

@@ -122,11 +122,10 @@
       With the aid of JavaScript, users can interactive with HTML document.
     <p>
       The only issue is that some languages, such as HTML itself and C++, heavily
-      use characters "<code>&lt;</code>" and "<code>&gt;</code>" in the same way as HTML,
-      such as <code>vector&lt;string&gt;</code> in C++. We have to escape these "tag
-      characters". But this issue is not overall. For example, the "<code>&lt;</code>"
-      character in <code>x < 0</code> is not "tag-like", thus there is no need to
-      escape.
+      use characters "<" and ">" in the same way as HTML, such as
+      <code>vector&lt;string&gt;</code> in C++. We have to escape these "tag
+      characters". But this issue is not overall. For example, the "<" character
+      in <code>x < 0</code> is not "tag-like", thus there is no need to escape.
     </p>
 
     <h2>Chunk in HTML</h2>
@@ -201,7 +200,7 @@
       shall store the original in a new <code>span</code> element with the class
       "unwoven" and set it as hidden.
       So, the code splits into two parts:
-      <div class="chunk" name="weave chunk reference">
+      <div class="chunk" name="literate.js">
         function weaveChunkRef(chunkRef) {
           <span class="chunkref">create unwoven span for weaving chunk reference</span>
           <span class="chunkref">replace innerHTML for weaving chunk reference</span>
@@ -232,7 +231,7 @@
       With the unwoven span, to unweave a chunk reference or a chunk in later,
       all we need to do is iterating over the children nodes and find out the
       element with class "unwoven". (If not found, throw an error.)
-      <div class="chunk" name="unweave">
+      <div class="chunk" name="literate.js">
         function unweave(elem) {
           for (var i = 0; i < elem.children.length; i++) {
             var child = elem.children[i];
@@ -269,7 +268,7 @@
       Again, we shall append an unwoven span to the inline chunk. So, we simply
       follow the code in <span class="chunkref">weave chunk reference</span>,
       with a little adaptation.
-      <div class="chunk" name="weave inline chunk">
+      <div class="chunk" name="literate.js">
         function weaveInlineChunk(chunk) {
           /* Create unwoven span */
           var unwoven = document.createElement("span");
@@ -325,7 +324,7 @@
       </div>
       The unwoven now becomes a <code>div</code> element. So, the code for weaving
       block chunk simply an adaptation of <span class="chunkref">weave inline chunk</span>.
-      <div class="chunk" name="weave block chunk">
+      <div class="chunk" name="literate.js">
         function weaveBlockChunk(chunk) {
           /* Create unwoven span */
           var unwoven = document.createElement("div");
@@ -373,7 +372,7 @@
     </p>
     <p>
       We are to remove these extra characters.      
-      <div class="chunk" name="regularize code block">
+      <div class="chunk" name="literate.js">
         function regularizeCodeBlock(text) {
           <span class="chunkref">define regularization</span>
         }
@@ -492,7 +491,7 @@
       code blocks in the HTML file wrapped in <code>&lt;pre&gt;&lt;code&gt;</code>
       element also need regularization. So, we regularize both of them; the order
       is irrelevant.
-      <div class="chunk" name="regularize all">
+      <div class="chunk" name="literate.js">
         function regularize() {
           <span class="chunkref">regularize block chunk</span>
           <span class="chunkref">regularize code in pre</span>
@@ -524,7 +523,7 @@
     chunk references and chunks is irrelevant. So, after regularization, we weave
     chunk references and chunks one by one. The order of weaving is irrelevant.
     Here, we weave chunk references first.
-    <div class="chunk" name="weave all">
+    <div class="chunk" name="literate.js">
       function weave() {
         regularize();
         <span class="chunkref">weave chunk references</span>
@@ -566,7 +565,7 @@
       The main process of tangling is implemented by a function <code>_tangle</code>,
       which accepts a string <code>chunkName</code> and returns a string for the
       tangled code:
-      <div class="chunk" name="_tangle">
+      <div class="chunk" name="literate.js">
         function _tangle(chunkName) {
           var code = "";
           <span class="chunkref">define _tangle</span>
@@ -617,7 +616,7 @@
         if (i < chunks.length - 1) code += "\n";
       </div>
       The implementation of <code>getFirstChildByClass</code> is straight forward.
-      <div class="chunk" name="get first child by class">
+      <div class="chunk" name="literate.js">
         function getFirstChildByClass(node, className) {
           for (var i = 0; i < node.children.length; i++) {
             var child = node.children[i];
@@ -669,7 +668,7 @@
     <p>
       By clicking the "⟨chunk name⟩≡", function <code>tangle(chunkName)</code> is
       triggered. We popup a new window to show the tangled code, thus:
-      <div class="chunk" name="tangle">
+      <div class="chunk" name="literate.js">
         function tangle(chunkName) {
           var code = _tangle(chunkName);
           <span class="chunkref">create HTML for the tangled code</span>
@@ -717,7 +716,7 @@
         But since it is called for tangling, there is not HTML tags in the text
         before the <code>node</code>, this implementation is still valid. Temporally,
         I cannot figure out a better implementation.):
-      <div class="chunk" name="get text before">
+      <div class="chunk" name="literate.js">
         function getTextBefore(node) {
           const rangeBefore = document.createRange();
           rangeBefore.setStart(node.parentNode.firstChild, 0);
@@ -728,7 +727,7 @@
       </div>
       Then, directly, we count how many whitespace between the front of the chunk
       chunk reference and beginning of the line.
-      <div class="chunk" name="get indentation">
+      <div class="chunk" name="literate.js">
         function getIndentation(chunkRef) {
           var textBefore = getTextBefore(chunkRef);
           var indentation = 0;
@@ -744,7 +743,7 @@
       </div>
       The <code>indent</code> function is also straight forward. We simply prepend
       <code>indentation</code> many whitespace before each line.
-      <div class="chunk" name="indent">
+      <div class="chunk" name="literate.js">
         function indent(text, indentation) {
           var result = "";
           for (var i = 0; i < text.length; i++) {
@@ -758,43 +757,11 @@
       </div>
     </p>
 
-    <h2>Packaging</h2>
-
+    <h2>On Loading</h2>
     <p>
-      In the end of our literate programming journey, we put all these into one
-      JavaScript file, called <code>literate.js</code>.
-      <div class="chunk" name="literate.js">
-        /* Literate Programming in HTML */
-  
-        <span class="chunkref">weave chunk reference</span>
-  
-        <span class="chunkref">unweave</span>
-  
-        <span class="chunkref">weave inline chunk</span>
-  
-        <span class="chunkref">weave block chunk</span>
-  
-        <span class="chunkref">regularize code block</span>
-  
-        <span class="chunkref">regularize all</span>
-  
-        <span class="chunkref">weave all</span>
-  
-        <span class="chunkref">_tangle</span>
-
-        <span class="chunkref">tangle</span>
-  
-        <span class="chunkref">get first child by class</span>
-  
-        <span class="chunkref">get text before</span>
-  
-        <span class="chunkref">get indentation</span>
-  
-        <span class="chunkref">indent</span>
-      </div>
-  
-      On loading, we weave the page (regularization has been included as a part
-      of <code>weave</code>).
+      In the end of our literate programming journey, we weave the page
+      (regularization has been included as a part of <code>weave</code>)
+      when it is loaded in browser.
       <div class="chunk" name="literate.js">
         onload = () => {
           weave();
@@ -809,12 +776,25 @@
       We use CSS to style the chunks and chunk references.
     </p>
 
+    <h3>Inline Code</h3>
+    <p>
+      We add a thin border to inline code and pad it a little to make it stand out.
+      <div class="chunk" name="literate.css">
+        code {
+          border-style: dashed;
+          border-width: 0.1em;
+          padding-left: 0.3em;
+          padding-right: 0.3em;
+        }
+      </div>
+    </p>
+
     <h3>Code Block</h3>
     <p>
       We put code block into a block, of course. The block is wrapped by a dashed
       grey border. We also adjust the position of the code, to move it toward the
       center of the border.
-      <div class="chunk" name="code in pre style">
+      <div class="chunk" name="literate.css">
         pre code {
           display: block;
           border-style: dashed;
@@ -835,7 +815,7 @@
     <p>
       For each chunk, we add a narrow margin to make it appear a little isolated
       from the content.
-      <div class="chunk" name="chunk style">
+      <div class="chunk" name="literate.css">
         div.chunk {
           margin-top: 1em;
           margin-bottom: 1em;
@@ -847,21 +827,20 @@
     <p>
       For block chunk, we make the head bold, indicating a definition (we always
       make something bold when it is defined).
-      <div class="chunk" name="block chunk head style">
+      <div class="chunk" name="literate.css">
         .block-chunk-head {
           font-weight: bold;
         }
       </div>
-      We use a dashed border instead of a underline for hyperlink, which triggers
-      <code>tangle</code>, for making it pretty.
-      <div class="chunk" name="block chunk head hyperlink style">
+      We delete the ugly underline of hyperlink, which triggers <code>tangle</code>,
+      and pad a little for making it pretty. The original hyperlink color is too
+      bright, we use darkblue instead.
+      <div class="chunk" name="literate.css">
         .block-chunk-head a {
-          border: 0.1em;
-          border-style: dashed;
           text-decoration: none;
-          padding: 0.1em 0.1em;
-          margin: 0.1em;
-          color: black;
+          padding-left: 0.1em;
+          padding-right: 0.1em;
+          color: darkblue;
         }
       </div>
     </p>
@@ -869,29 +848,13 @@
     <h3>Inline Chunk</h3>
     <p>
       For inline chunk, we simply make the head bold, indicating a definition,
-      and add a very narrow margin to isolate it from the content.
-      <div class="chunk" name="inline chunk style">
+      and add a very narrow padding to isolate it from the content.
+      <div class="chunk" name="literate.css">
         .inline-chunk-head {
           font-weight: bold;
-          margin-left: 0.1em;
-          margin-right: 0.1em;
+          padding-left: 0.1em;
+          padding-right: 0.1em;
         }
-      </div>
-    </p>
-
-    <h3>CSS File</h3>
-    <p>
-      Put all these together, we get the following CSS file <code>literate.css</code>.
-      <div class="chunk" name="literate.css">
-        <span class="chunkref">code in pre style</span>
-
-        <span class="chunkref">chunk style</span>
-
-        <span class="chunkref">block chunk head style</span>
-
-        <span class="chunkref">block chunk head hyperlink style</span>
-
-        <span class="chunkref">inline chunk style</span>
       </div>
     </p>
 
