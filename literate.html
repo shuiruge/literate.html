@@ -240,6 +240,17 @@
       Now, you can start your own journey of literate programming!
     </p>
 
+    <h2>How to Read this Document</h2>
+    <p>
+      In the rest of this document, we implement the JavaScript code for our purpose.
+      We also add some style to make it pretty. You can try to click the head of each
+      block chunk, and get a surprise (a new tab will popup). Clicking chunk reference
+      is fun too.
+    </p>
+    <p>
+      Let us continue and (try to) enjoy this trip.
+    </p>
+
     <h2>Weaving</h2>
     <p>
       Chunks are woven to display in browser. We use JavaScript to transcript
@@ -273,7 +284,7 @@
     <p>
       We first deal with chunk reference. Chunk reference is displayed in the format
       <pre><code>
-        ⟨&lt;a href="chunk-name"&gt;chunk name&lt;/a&gt;⟩&lt;/span&gt;
+        ⟨&lt;a href="chunk-name"&gt;chunk name&lt;/a&gt;⟩
       </code></pre>
       within the original <code>&lt;span class="chunkref"&gt;</code> element.
       The hyperlink links to the <em>first</em> chunk with the referred chunk name.
@@ -438,7 +449,7 @@
       </div> 
     </p>
 
-    <h3>Regularize Code Block</h3>
+    <h3 id="regularize-code-block">Regularize Code Block</h3>
     <p>
       A widely known problem is the whitespace before the "code block". Browser
       will display these whitespace, which is not what we intend. To solve this,
@@ -607,7 +618,7 @@
       </div>
     </p>
 
-    <h3>Weave All</h3>
+    <h3 id="weave-all">Weave All</h3>
     Now, we have had the all the functions for weaving. The order of weaving
     chunk references and chunks is irrelevant. So, after regularization, we weave
     chunk references and chunks one by one. The order of weaving is irrelevant.
@@ -890,9 +901,10 @@
 
     <h2>On Loading</h2>
     <p>
-      In the end of our literate programming journey, we weave the page
-      (regularization has been included as a part of <code>weave</code>)
-      when it is loaded in browser.
+      Congratulations! You are in the end of this journey. Everything left is to
+      weave this HTML file when it is loaded in your browser.
+      (Recall that <a href="#regularize-code-block">regularization</a> has been
+      included as a part of <code><a href="#weave-all">weave</a></code>.)
       <div class="chunk" name="literate.js">
         onload = () => {
           weave();
@@ -904,6 +916,7 @@
     <h2>Style</h2>
 
     <p>
+      Wait a minute for adding some style to make the document pretty.
       We use CSS to style the chunks and chunk references.
     </p>
 
