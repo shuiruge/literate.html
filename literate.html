@@ -13,7 +13,10 @@
         margin-left: auto;
         margin-right: auto;
         padding: 1em;
-    }
+      }
+      span.comment {
+        font-size: 0.8em;
+      }
     </style>
 
     <!-- literate -->
@@ -117,9 +120,8 @@
     </p>
     <p>
       Comparing with \(\TeX\), HTML is much modern and widely used. It can be
-      displayed on any device including mobile phones.
-
-      With the aid of JavaScript, users can interactive with HTML document.
+      displayed on any device including mobile phones. There is no need to install
+      a huge \(\LaTeX\) environment. All you need is a browser.
     <p>
       The only issue is that some languages, such as HTML itself and C++, heavily
       use characters "<" and ">" in the same way as HTML, such as
@@ -177,6 +179,25 @@
           #include &lt;math.h&gt;
         &lt;/div&gt;
       </code></pre>
+    </p>
+
+    <h2>How to Use</h2>
+
+    <p>
+      While you are reading through this document, you may meet the block chunks
+      named <code>literate.js</code> and <code>literate.css</code>. Then, click
+      the head of each block chunk, and the tangled code will popup in a new tab.
+      This is the JavaScript and CSS code for writing literate programming in HTML,
+      just like this one.
+    </p>
+    <p>
+      If you find this document too long to read, then just download the JavaScript
+      and CSS code from the repository hosted on
+      <a href="https://github.com/shuiruge/literate.html">GitHub</a>. They locate
+      in the <code>literate.js</code> and the <code>literate.css</code> respectively.
+    </p>
+    <p>
+      Now, you can start your own journey of literate programming!
     </p>
 
     <h2>Weaving</h2>
@@ -709,13 +730,13 @@
         void main() {
           (end here)
       </code></pre>
-      This is done by the following function (We follow
+      This is done by the following function (<span class="comment">We follow
         <a href="https://stackoverflow.com/a/72545166/1218716">this answer</a>.
         This implementation, however, cannot deal with HTML tags properly.
         Precisely, any HTML tag in the returned <code>textBefore</code> are excluded.
         But since it is called for tangling, there is not HTML tags in the text
         before the <code>node</code>, this implementation is still valid. Temporally,
-        I cannot figure out a better implementation.):
+        I cannot figure out a better implementation.</span>):
       <div class="chunk" name="literate.js">
         function getTextBefore(node) {
           const rangeBefore = document.createRange();
