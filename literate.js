@@ -10,6 +10,7 @@ function weaveChunkRef(chunkRef) {
   chunkRef.appendChild(document.createTextNode(`⟨${chunkName}⟩`));
   chunkRef.appendChild(unwoven);
 }
+
 function unweave(elem) {
   for (var i = 0; i < elem.children.length; i++) {
     var child = elem.children[i];
@@ -17,8 +18,9 @@ function unweave(elem) {
       return child;
     }
   }
-  throw new Error("[unweave] no unwoven span found in element: " + elem.innerHTML);
+  throw new Error(`[unweave] no unwoven span found in element: "${elem.innerHTML}"`);
 }
+
 function weaveInlineChunk(chunk) {
   /* Create unwoven span */
   var unwoven = document.createElement("span");
@@ -41,6 +43,7 @@ function weaveInlineChunk(chunk) {
   chunk.appendChild(code);
   chunk.appendChild(unwoven);
 }
+
 function weaveBlockChunk(chunk) {
   /* Create unwoven span */
   var unwoven = document.createElement("div");
@@ -72,6 +75,7 @@ function weaveBlockChunk(chunk) {
   chunk.appendChild(pre);
   chunk.appendChild(unwoven);
 }
+
 function regularizeCodeBlock(text) {
   var result = "";
   var indentation = 0;
@@ -115,6 +119,7 @@ function regularizeCodeBlock(text) {
   }
   return result;
 }
+
 function regularize() {
   var divs = document.getElementsByTagName("div");
   for (var i = 0; i < divs.length; i++) {
@@ -130,6 +135,7 @@ function regularize() {
     }
   }
 }
+
 function weave() {
   regularize();
   /* Weave chunk references */
@@ -148,23 +154,25 @@ function weave() {
       weaveBlockChunk(chunk);
     }
     else {
-      throw new Error("[weave] unknown chunk type: " + chunk.tagName);
+      throw new Error(`[weave] unknown chunk type: "${chunk.tagName}"`);
     }
   }
 }
+
 function _tangle(chunkName) {
   var code = "";
   var chunks = document.getElementsByName(chunkName);
   for (var i = 0; i < chunks.length; i++) {
-    if (chunks[i].getAttribute("class") != "chunk") continue;
-    var unwoven = unweave(chunks[i]).cloneNode(true);
+    var chunk = chunks[i];
+    if (chunk.getAttribute("class") != "chunk") continue;
+    var unwoven = unweave(chunk).cloneNode(true);
     /* Deal with chunk references */
     var chunkRef = getFirstChildByClass(unwoven, "chunkref");
     while (chunkRef != undefined) {
       var subChunkName = unweave(chunkRef).innerHTML;
       var subCode = _tangle(subChunkName);
       /* Block chunk needs indentation */
-      if (chunks[i].tagName == "DIV") {
+      if (chunk.tagName == "DIV") {
         var indentation = getIndentation(chunkRef);
         subCode = indent(subCode, indentation);
       }
@@ -175,9 +183,25 @@ function _tangle(chunkName) {
     }
     code += unwoven.innerHTML;
     if (i < chunks.length - 1) code += "\n";
+    /* Append newline */
+    var appendNewline = chunk.getAttribute("append-newline");
+    if (appendNewline == null) {
+      appendNewline = 0;
+    }
+    else if (appendNewline == "") {
+      appendNewline = 1;
+    }
+    else if (!isNaN(appendNewline)) {
+      appendNewline = parseInt(appendNewline);
+    }
+    else {
+      throw new Error(`[_tangle] the value of append-newline must be an integer, but got "${appendNewline}"`);
+    }
+    for (var j = 0; j < appendNewline; j++) code += "\n";
   }
   return code;
 }
+
 function getFirstChildByClass(node, className) {
   for (var i = 0; i < node.children.length; i++) {
     var child = node.children[i];
@@ -187,6 +211,7 @@ function getFirstChildByClass(node, className) {
   }
   return undefined;
 }
+
 function tangle(chunkName) {
   var code = _tangle(chunkName);
   html = `<!doctype html><html>` +
@@ -198,6 +223,7 @@ function tangle(chunkName) {
   win.document.write(html);
   win.document.close();
 }
+
 function getTextBefore(node) {
   const rangeBefore = document.createRange();
   rangeBefore.setStart(node.parentNode.firstChild, 0);
@@ -205,6 +231,7 @@ function getTextBefore(node) {
   const textBefore = rangeBefore.toString();
   return textBefore;
 }
+
 function getIndentation(chunkRef) {
   var textBefore = getTextBefore(chunkRef);
   var indentation = 0;
@@ -217,6 +244,7 @@ function getIndentation(chunkRef) {
   }
   return indentation;
 }
+
 function indent(text, indentation) {
   var result = "";
   for (var i = 0; i < text.length; i++) {
@@ -227,6 +255,7 @@ function indent(text, indentation) {
   }
   return result;
 }
+
 onload = () => {
   weave();
 }
