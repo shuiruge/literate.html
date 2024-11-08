@@ -17,7 +17,7 @@ pre code {
   padding-bottom: 1em;
 }
 .chunkref a {
-  color: darkblue;
+  color: darkred;
   text-decoration: none;
   padding-left: 0.1em;
   padding-right: 0.1em;
@@ -33,7 +33,7 @@ div.chunk {
   text-decoration: none;
   padding-left: 0.1em;
   padding-right: 0.1em;
-  color: darkblue;
+  color: darkred;
 }
 .inline-chunk-head {
   font-weight: bold;
