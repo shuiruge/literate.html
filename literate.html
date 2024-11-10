@@ -592,7 +592,7 @@
       element also need regularization. So, we regularize both of them; the order
       is irrelevant.
       <div class="chunk" name="literate.js" append-newline>
-        function regularize() {
+        function regularizeAll() {
           <span class="chunkref">regularize block chunk</span>
           <span class="chunkref">regularize code in pre</span>
         }
@@ -624,8 +624,8 @@
     chunk references and chunks one by one. The order of weaving is irrelevant.
     Here, we weave chunk references first.
     <div class="chunk" name="literate.js" append-newline>
-      function weave() {
-        regularize();
+      function weaveAll() {
+        regularizeAll();
         <span class="chunkref">weave chunk references</span>
         <span class="chunkref">weave chunks</span>
       }
@@ -904,10 +904,10 @@
       Congratulations! You are in the end of this journey. Everything left is to
       weave this HTML file when it is loaded in your browser.
       (Recall that <a href="#regularize-code-block">regularization</a> has been
-      included as a part of <code><a href="#weave-all">weave</a></code>.)
+      included as a part of <code><a href="#weave-all">weaveAll</a></code>.)
       <div class="chunk" name="literate.js">
         onload = () => {
-          weave();
+          weaveAll();
         }
       </div>
       Up to now, we have completed the JavaScript code for literate programming.

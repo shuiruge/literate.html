@@ -136,7 +136,7 @@ function regularizeCodeBlock(text) {
   return result;
 }
 
-function regularize() {
+function regularizeAll() {
   var divs = document.getElementsByTagName("div");
   for (var i = 0; i < divs.length; i++) {
     if (divs[i].getAttribute("class") == "chunk") {
@@ -152,8 +152,8 @@ function regularize() {
   }
 }
 
-function weave() {
-  regularize();
+function weaveAll() {
+  regularizeAll();
   /* Weave chunk references */
   var chunkRefs = document.getElementsByClassName("chunkref");
   for (var i = 0; i < chunkRefs.length; i++) {
@@ -273,5 +273,5 @@ function indent(text, indentation) {
 }
 
 onload = () => {
-  weave();
+  weaveAll();
 }
