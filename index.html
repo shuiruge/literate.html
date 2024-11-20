@@ -26,6 +26,10 @@
     <!-- literate -->
     <link rel="stylesheet" type="text/css" href="literate.css"/>
     <script type="text/javascript" src="literate.js"></script>
+
+    <script>
+      window.onload = weaveAll;
+    </script>
   </head>
 
   <body>
@@ -251,6 +255,19 @@
       <a href="https://gitee.com/shuiruge/literate.html">Gitee</a> for Chinese users).
       They locate in the <code>literate.js</code> and the <code>literate.css</code>
       respectively.
+    </p>
+    <p>
+      After obtaining the two files, put them in your HTML head. For example,
+      <pre><code>
+        &lt;link rel="stylesheet" type="text/css" href="literate.css"/&gt;
+        &lt;script type="text/javascript" src="literate.js"&gt;&lt;/script&gt;
+      </code></pre>
+      Then, remember to weave when onload. For example,
+      <pre><code>
+        &lt;script&gt;
+          window.onload = weaveAll;
+        &lt;/script&gt;
+      </code></pre>
     </p>
     <p>
       Now, you can start your own journey of literate programming!
@@ -921,11 +938,15 @@
       weave this HTML file when it is loaded in your browser.
       (Recall that <a href="#regularize-code-block">regularization</a> has been
       included as a part of <code><a href="#weave-all">weaveAll</a></code>.)
-      <div class="chunk" name="literate.js">
-        onload = () => {
-          weaveAll();
-        }
-      </div>
+      So, we shall write in <code>literate.js</code>:
+      <pre><code>
+        onload = weaveAll;
+      </code></pre>
+      But, what if you want to load more JavaScript functions in <code>onload</code>?
+      Who knows what you are thinking? So, it is left to you, the reader, to determine
+      what the <code>onload</code> should be.
+    </p>
+    <p>
       Up to now, we have completed the JavaScript code for literate programming.
     </p>
 

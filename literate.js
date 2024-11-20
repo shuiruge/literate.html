@@ -271,7 +271,3 @@ function indent(text, indentation) {
   }
   return result;
 }
-
-onload = () => {
-  weaveAll();
-}
