@@ -1,0 +1,1057 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+    <meta name="version" content="1.0"/>
+    <meta name="author" content="shuiruge@hotmail.com"/>
+    <meta name="repository" content="https://github.com/shuiruge/literate.html"/>
+
+    <title>Literate Programming in HTML</title>
+
+    <style>
+      body {
+        background-color: #c7edcc;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+        padding: 1em;
+      }
+      span.comment {
+        font-size: 0.8em;
+      }
+    </style>
+
+    <!-- literate -->
+    <link rel="stylesheet" type="text/css" href="literate-v2.css"/>
+    <script type="text/javascript" src="literate-v2.js"></script>
+
+    <script>
+      window.onload = weaveAll;
+    </script>
+  </head>
+
+  <body>
+    <h1>Literate Programming in HTML</h1>
+
+    <h2>What Is Literate Programming</h2>
+    <p>
+      In <a href="http://www.axiom-developer.org/axiom-website/litprog.html">Literate Programming</a>,
+      Tim Daly wrote:
+      <blockquote cite="http://www.axiom-developer.org/axiom-website/litprog.html">
+        The best programming language is English. Everything else is notation.
+      </blockquote>
+    </p>
+    <p>
+      Why? he went on to explain:
+      <blockquote cite="http://www.axiom-developer.org/axiom-website/litprog.html">
+        <p>
+          Consider the best possible world. You've been hired at a company and
+          join a team that is already working on a program. They hand you a book,
+          tell you to go home and read it over the next two weeks. At the end of
+          the two weeks you can work on the program as effectively anyone on the
+          team. The team has successfully communicated from one human to another.
+        </p>
+        <p>
+          What is in the book? Remember our calculus textbook? It started from
+          the ideas like limits and gradually developed the ideas until they could
+          be expressed in equations. By the time you got to the equations you
+          already understood the concepts. You could look at the equations and see
+          why they matched the text. It is the <em>why</em> that is the
+          important part. It is the part that our programs are missing.
+        </p>
+        <p>
+          The book you took home uses the same method. You started with the problem
+          in chapter 1. Chapter 2 expresses the ideas needed to solve the problem.
+          The next few chapters expand on each idea, gradually becoming more specific
+          until the idea is reduced to code. By the time you get to the code it
+          should be perfectly clear what the code should look like. Any part of
+          the code you don't understand means that the book needs some additional words.
+        </p>
+      </blockquote>
+      Literate programming is like when you are explaining your code to a colleague.
+      You have to declare what you were thinking when you wrote the code, step by
+      step, piece by piece. You are telling the whole story: which step is essential,
+      why the order must be so, or what is this used for. All materials are organized
+      in a structure that makes sense to you (not to the compiler).
+    </p>
+
+    <p>
+      Technically, literate programming has two components: <strong>weave</strong>
+      and <strong>tangle</strong>. By weaving, the source code is converted to
+      printable document, such as PDF or HTML. By tangling, the codes involved
+      in the document are extracted and organized in order.
+    </p>
+    <p>
+      The basic building blocks are chunks and chunk references.
+      So, for example, we can define a chunk named <code>hello.c</code>:
+      <blockchunk name="hello.c">
+        <chunkref>include</chunkref>
+        int main() {
+          <chunkref>say hello</chunkref>
+          return 0;
+        }
+      </blockchunk>
+      where the chunk references <chunkref>include</chunkref> and
+      <chunkref>say hello</chunkref> are defined elsewhere. As an
+      example, <chunk name="include">#include &lt;stdio.h&gt;</chunk>
+      and <chunk name="say hello">printf("Hello, world!\n");</chunk>
+
+      Then, by tangling, code are extracted and organized in order:
+      <blockcode>
+        #include &lt;stdio.h&gt;
+        int main() {
+          printf("Hello, world!\n");
+          return 0;
+        }
+      </blockcode>
+    </p>
+    <p>
+      The original literate programming designed by Donald Knuth is independent of
+      specific programming languages. It is the pseudo code that represents the
+      algorithm instead of a language specific implementation that is presented
+      in a chunk. The tangling process also translates the pseudo code into a language
+      specific implementation, such as PASCAL (using WEB) or C (using CWEB).
+      In this document, however, we write language specific implementation instead
+      pseudo code in chunk. The reason is that different languages solve the same
+      problem in intrinsically different ways. For example, the trick that uses
+      dictionary to reduce temporal complexity is common in object oriented languages.
+      But, this trick fails in pure functional languages like Haskell where mutable
+      variable such as dictionary implemented by hash-table is not allowed. For
+      this reason, we suggest to use language specific implementation instead of
+      pseudo code in chunk. After all, <em>it is the idea underlying the code (that
+      is, the context) instead of the code itself that is really matters for our
+      understanding.</em>
+    </p>
+
+    <h2>Why Using HTML</h2>
+    <p>
+      The main reason is that the HTML file can be displayed directly in a browser.
+      So, there is no need to weave.
+
+      Yet another benefit is that HTML provides a standard for markup languages.
+      Any other markup formats (such as markdown) can be safely converted to HTML.
+    </p>
+    <p>
+      Comparing with TeX, HTML is much modern and widely used. It can be displayed
+      on any device including mobile phones. There is no need to install a huge
+      TeX Live environment (the minimal version is about 1GB). All you need is a
+      browser.
+    <p>
+      The only issue is that some languages, such as HTML itself and C++, heavily
+      use characters "<" and ">" in the same way as HTML, such as
+      <code>vector&lt;string&gt;</code> in C++. We have to escape these "tag
+      characters". But this issue is not overall. For example, the "<" character
+      in <code>x < 0</code> is not "tag-like", thus there is no need to escape.
+    </p>
+
+    <h2>Chunk in HTML</h2>
+
+    <h3>HTML Elements for Chunks</h3>
+    <p>
+      As usual, we use the "class" attribute to indicate chunk and chunk reference.
+      Thus, block chunk is represented by <code>blockchunk</code> element (just like
+      <code>blockquote</code>) and a name attribute.
+      <em>Chunk name shall be plain text.</em> For example:
+      <blockcode>
+        &lt;blockchunk name="hello.c"&gt;
+
+          ...code block...
+
+        &lt;/blockchunk&gt;
+      </blockcode>
+      And inline chunk is represented by <code>chunk</code> element with class "chunk"
+      and a name attribute. For example:
+      <blockcode>
+        &lt;chunk name="say hello"&gt; ...one line code... &lt;/chunkref&gt;
+      </blockcode>
+      Chunk reference, which is always inline, is represented by <code>chunkref</code>
+      element. The referred chunk name locates in the content
+      of the <code>chunkref</code> element. Thus,
+      <blockcode>
+        &lt;chunkref&gt;say hello&lt;/chunkref&gt;
+      </blockcode>
+    </p>
+
+    <h3 id="sharing-chunk-name">Sharing Chunk Name</h3>
+    <p>
+      Different chunks may share the same name. For example:
+      <blockcode>
+        &lt;blockchunk name="include"&gt;
+          #include &lt;stdio.h&gt;
+        &lt;/blockchunk&gt;
+      </blockcode>
+      and then after some explanation,
+      <blockcode>
+        &lt;blockchunk name="include"&gt;
+          #include &lt;math.h&gt;
+        &lt;/blockchunk&gt;
+      </blockcode>
+      While tangling, chunks with the same name are stacked in due order.
+      Thus, the previous example is equivalent to:
+      <blockcode>
+        &lt;blockchunk name="include"&gt;
+          #include &lt;stdio.h&gt;
+          #include &lt;math.h&gt;
+        &lt;/blockchunk&gt;
+      </blockcode>
+    </p>
+
+    <h3 id="appending-newline">Appending Newline</h3>
+    <p>
+      Additionally, we can add a "append-newline" attribute to block chunk. If a
+      block chunk has this attribute, a newline character will be appended to the
+      end of the code block when it is tangled. For example:
+      <blockcode>
+        &lt;blockchunk name="hello.c" append-newline&gt;
+          void say_hello () {
+            printf("Hello, world!\n");
+          }
+        &lt;/blockchunk&gt;
+      </blockcode>
+      followed by
+      <blockcode>
+        &lt;blockchunk name="hello.c"&gt;
+          void say_hello_again () {
+            printf("Hello, world!\n");
+          }
+        &lt;/blockchunk&gt;
+      </blockcode>
+      will be tangled into
+      <blockcode>
+        void say_hello () {
+          printf("Hello, world!\n");
+        }
+
+        void say_hello_again () {
+          printf("Hello, world!\n");
+        }
+      </blockcode>
+      There is an empty line at the end of the first function. It makes the code
+      much more readable. Otherwise, functions will be densely packed together.
+      The second block chunk does not have the "append-newline" attribute, so
+      there is no empty line at the end of the second function.
+    </p>
+    <p>
+      If "append-newline" is set to a number, multiple empty lines will be
+      appended. For example, <code>append-newline="2"</code> means appending two
+      newline characters.
+      This is the case for Python (see <a href="https://peps.python.org/pep-0008/#blank-lines">PEP8</a>).
+    </p>
+
+    <h2>How to Use</h2>
+
+    <p>
+      While you are reading through this document, you may meet the block chunks
+      named <code>literate.js</code> and <code>literate.css</code>. Then, click
+      the head of each block chunk, and the tangled code will popup in a new tab.
+      This is the JavaScript and CSS code for writing literate programming in HTML,
+      just like this one.
+    </p>
+    <p>
+      If you find this document too long to read, then just download the JavaScript
+      and CSS code from the repository hosted on
+      <a href="https://github.com/shuiruge/literate.html">GitHub</a> (or
+      <a href="https://gitee.com/shuiruge/literate.html">Gitee</a> for Chinese users).
+      They locate in the <code>literate.js</code> and the <code>literate.css</code>
+      respectively.
+    </p>
+    <p>
+      After obtaining the two files, put them in your HTML head. For example,
+      <blockcode>
+        &lt;link rel="stylesheet" type="text/css" href="literate.css"/&gt;
+        &lt;script type="text/javascript" src="literate.js"&gt;&lt;/script&gt;
+      </blockcode>
+      Then, remember to weave when onload. For example,
+      <blockcode>
+        &lt;script&gt;
+          window.onload = weaveAll;
+        &lt;/script&gt;
+      </blockcode>
+    </p>
+    <p>
+      Now, you can start your own journey of literate programming!
+    </p>
+
+    <h2>How to Read this Document</h2>
+    <p>
+      In the rest of this document, we implement the JavaScript code for our purpose.
+      We also add some style to make it pretty. You can try to click the head of each
+      block chunk, and get a surprise (a new tab will popup). Clicking chunk reference
+      is fun too.
+    </p>
+    <p>
+      Let us continue and (try to) enjoy this trip.
+    </p>
+
+    <h2>Weaving</h2>
+    <p>
+      Chunks are woven to display in browser. We use JavaScript to convert
+      the HTML elements of chunks and chunk references into the those that are
+      more suitable for display and cooperating with CSS.
+    </p>
+
+    <h3>Unweaving</h3>
+    <p>
+      Weaving will in-place modify the <code>innerHTML</code> of chunks and chunk
+      references. Then, when we want to tangle them, we need to unweave them first.
+      For avoiding this complexity, we store the original chunk or chunk reference
+      in a new element (the same type as the original) with the class "unwoven"
+      and set it as hidden for not displaying in browser. Therefore, unweaving is
+      nothing but extracting the element with class "unwoven" from the woven.
+      (If not found, throw an error.)
+      <blockchunk name="literate.js" append-newline>
+        function unweave(elem) {
+            var unwoven = elem.getElementsByTagName("unwoven");
+            if (unwoven != null) {
+               return unwoven;
+            }
+            throw new Error(`[unweave] no unwoven span found in element: "${elem.innerHTML}"`);
+        }
+      </blockchunk>
+    </p>
+
+    <h3>Weaving Chunk Reference</h3>
+    <p>
+      We first deal with chunk reference. Chunk reference is displayed in the format
+      <blockcode>
+        ⟨&lt;a href="chunk-name"&gt;chunk name&lt;/a&gt;⟩
+      </blockcode>
+      within the original <code>&lt;chunkref&gt;</code> element.
+      The hyperlink links to the <em>first</em> chunk with the referred chunk name.
+      To do so, we have to add an <code>id</code> attribute to that first chunk.
+      <blockchunk name="literate.js" append-newline>
+        function weaveChunkRef(chunkRef) {
+          <chunkref>create unwoven span for weaving chunk reference</chunkref>
+          <chunkref>create id and link to the first chunk</chunkref>
+          <chunkref>replace innerHTML for weaving chunk reference</chunkref>
+        }
+      </blockchunk>
+      We create a <code>span</code> element for the unwoven, which stores the original
+      <code>innerHTML</code> before weaving. For not displaying the unwoven, we set
+      to be hidden.
+      <blockchunk name="create unwoven span for weaving chunk reference">
+        /* Create unwoven span */
+        var unwoven = document.createElement("span");
+        unwoven.setAttribute("class", "unwoven");
+        unwoven.setAttribute("hidden", true);
+        unwoven.innerHTML = chunkRef.innerHTML;
+      </blockchunk>
+      Then, find the first chunk with the referred chunk name, and add an <code>id</code>
+      to it for linking. Since there may be whitespace in the chunk name, which is
+      not valid in ID, we use "-" for replacing.
+      <blockchunk name="create id and link to the first chunk">
+        /* Create id and link to the first chunk */
+        var id = null;
+        var chunkName = chunkRef.innerHTML;
+        var chunks = document.getElementsByName(chunkName);
+        for (var i = 0; i < chunks.length; i++) {
+          if (chunks[i].getAttribute("class") != "chunk") continue;
+          id = chunkName.replace(" ", "-");
+          chunks[i].setAttribute("id", id);
+          break;
+        }
+      </blockchunk>
+      If there is no chunk with the referred chunk name, there must be something
+      wrong, we raise an error.
+      <blockchunk name="create id and link to the first chunk">
+        if (id == null) throw new Error(`[weaveChunkRef] no chunk found for "${chunkName}"`);
+      </blockchunk>
+      Then, we create the link to the first chunk.
+      <blockchunk name="create id and link to the first chunk">
+        var link = document.createElement("a");
+        link.setAttribute("href", `#${id}`);
+        link.setAttribute("class", "chunkref-link");
+        link.innerHTML = chunkName;
+      </blockchunk>
+      Now, we clean up the <code>chunkRef</code> element and add the link and
+      the unwoven <code>span</code> to it.
+      <blockchunk name="replace innerHTML for weaving chunk reference">
+        /* Replace HTML */
+        chunkRef.innerHTML = null;
+        chunkRef.appendChild(document.createTextNode("⟨"));
+        chunkRef.appendChild(link);
+        chunkRef.appendChild(document.createTextNode("⟩"));
+        chunkRef.appendChild(unwoven);
+      </blockchunk>
+    </p>
+
+    <h3>Weaving Inline Chunk</h3>
+    <p>
+      Then, consider inline chunk. Inline chunk is displayed in the format
+      <pre><code>
+        &lt;span class="inline-chunk-head"&gt;⟨chunk name⟩≡&lt;/chunkref&gt;
+        &lt;code&gt;... one line code ...&lt;/code&gt;
+      </code></pre>
+      within the original <code>&lt;chunk&gt;</code> element.
+      We add a <code>span</code> element for the head:
+      <blockchunk name="create head for inline chunk">
+        /* Create chunk head span */
+        var chunkHead = document.createElement("span");
+        chunkHead.setAttribute("class", "inline-chunk-head");
+        chunkHead.innerHTML = `⟨${chunk.getAttribute("name")}⟩≡`;
+      </blockchunk>
+      And the one line code is wrapped in a <code>code</code> element:
+      <blockchunk name="create code for inline chunk">
+        /* Create code */
+        var code = document.createElement("code");
+        code.innerHTML = chunk.innerHTML;
+      </blockchunk>
+      Again, we shall append an unwoven span to the inline chunk. So, we simply
+      follow the code in <code>weaveChunkRef</code> with a little adaptation.
+      <blockchunk name="literate.js" append-newline>
+        function weaveInlineChunk(chunk) {
+          /* Create unwoven span */
+          var unwoven = document.createElement("span");
+          unwoven.setAttribute("class", "unwoven");
+          unwoven.setAttribute("hidden", true);
+          unwoven.innerHTML = chunk.innerHTML;
+
+          <chunkref>create head for inline chunk</chunkref>
+
+          <chunkref>create code for inline chunk</chunkref>
+
+          /* Replace HTML */
+          chunk.innerHTML = null;
+          chunk.appendChild(chunkHead);
+          chunk.appendChild(code);
+          chunk.appendChild(unwoven);
+        }
+      </blockchunk>
+    </p>
+
+    <h3>Weaving Block Chunk</h3>
+    <p>
+      Finally, consider block chunk. Almost the same as inline chunk, block chunk
+      should be displayed in the format
+      <blockcode>
+        &lt;span class="block-chunk-head"&gt;⟨chunk name⟩≡&lt;/chunkref&gt;
+        &lt;pre&gt;&lt;code&gt;
+          ... code block ...
+        &lt;/code&gt;&lt;/pre&gt;
+      </blockcode>
+      within the original <code>&lt;blockchunk&gt;</code> element.
+      But, we add a link to the head, clicking which will tangle the chunk.
+      Thus, the head span turns into
+      <blockcode>
+        ⟨&lt;a onclick="tangle(chunkName)"&gt;chunkName&lt;/a&gt;⟩≡
+      </blockcode>
+      For the tangle link, we have:
+      <blockchunk name="chunk head span for block chunk">
+        /* Create chunk head span */
+        var tangleLink = document.createElement("a");
+        var chunkName = chunk.getAttribute("name");
+        tangleLink.setAttribute("href", "javascript:void(0)");
+        tangleLink.setAttribute("onclick", `tangle('${chunkName}')`);
+        tangleLink.innerHTML = chunkName;
+      </blockchunk>
+      Then, we create the head and append everything in order.
+      <blockchunk name="chunk head span for block chunk">
+        var chunkHead = document.createElement("span");
+        chunkHead.setAttribute("class", "block-chunk-head");
+        chunkHead.appendChild(document.createTextNode("⟨"));
+        chunkHead.appendChild(tangleLink);
+        chunkHead.appendChild(document.createTextNode("⟩≡"));
+      </blockchunk>
+      The unwoven now becomes a <code>div</code> element. So, the code for weaving
+      block chunk simply an adaptation of <code>weaveInlineChunk</code>.
+      <blockchunk name="literate.js" append-newline>
+        function weaveBlockChunk(chunk) {
+          /* Create unwoven span */
+          var unwoven = document.createElement("div");
+          unwoven.setAttribute("class", "unwoven");
+          unwoven.setAttribute("hidden", true);
+          unwoven.innerHTML = chunk.innerHTML;
+
+          <chunkref>chunk head span for block chunk</chunkref>
+
+          /* Create pre */
+          var pre = document.createElement("pre");
+          var code = document.createElement("code");
+          code.innerHTML = chunk.innerHTML;
+          pre.appendChild(code);
+
+          /* Replace HTML */
+          chunk.innerHTML = null;
+          chunk.appendChild(chunkHead);
+          chunk.appendChild(pre);
+          chunk.appendChild(unwoven);
+        }
+      </blockchunk> 
+    </p>
+
+    <h3 id="regularize-code-block">Regularize Code Block</h3>
+    <p>
+      A widely known problem is the whitespace before the "code block". Browser
+      will display these whitespace, which is not what we intend. To solve this,
+      we have to regularize the code block wrapped by a <code>pre</code> element.
+      For example, code block like this:
+      <blockcode> 
+        &lt;pre&gt;
+          if (i = 0) {
+            i++;
+          }
+        &lt;/pre&gt;
+      </blockcode> 
+      has the raw text (<code>\n</code> for newline and <code>\s</code> for whitespace):
+      <blockcode> 
+        &lt;pre&gt;&lt;code&gt;<strong>\n\s\s\s\s\s\s</strong>if<strong>\s</strong>(i<strong>\s</strong>=<strong>\s</strong>0)<strong>\s</strong>{<strong>\n\s\s\s\s\s\s\s\s</strong>i++;<strong>\n\s\s\s\s\s\s</strong>}<strong>\n\s\s\s\s</strong>&lt;/code&gt;&lt;/pre&gt;
+      </blockcode> 
+      There are six extra whitespace in front of each line, and four whitespace
+      after the while code block. There is also an extra newline in front of the
+      code block.
+    </p>
+    <p>
+      We are to remove these extra characters.      
+      <blockchunk name="literate.js" append-newline>
+        function regularizeCodeBlock(text) {
+          <chunkref>define regularization</chunkref>
+        }
+      </blockchunk>
+      We need to figure out the indentation (the six extra whitespace in front
+      of each line). We use the whitespace in front of the first line of code
+      as the indentation of the whole code block.
+
+      We also need to count the number of whitespace in front of each line
+      (<code>whitespaceCount</code>) and subtract indentation from it.
+      Consider the line <code>i++;</code> in the previous example, it has
+      <code>whitespaceCount = 8</code> and <code>indentation = 6</code>, so this
+      line is indented by 2 whitespace (<code>whitespaceCount - indentation</code>).
+      In addition, a flag for the state of counting is found helpful.
+      <blockchunk name="define regularization">
+        var result = "";
+        var indentation = 0;
+        var whitespaceCount = 0;
+        var counting = false;
+        for (var i = 0; i < text.length; i++) {
+          <chunkref>walk through text for regularization</chunkref>
+        }
+      </blockchunk>
+
+      Let us go through the text. When we have not meet any code character, the
+      <code>result</code> is empty. In this case, we omit the newlines. 
+      If we have not encountered any character of the code block, but whitespace,
+      indicating that this maybe the first line of code, we increase <code>indentation</code>.
+      <blockchunk name="walk through text for regularization">
+        if ((result == "") && (text[i] == ' ')) {
+          indentation++;
+        }
+      </blockchunk>
+      But, it maybe an empty line, a line with only whitespace. So, after a newline
+      break, we reset the <code>indentation</code>, expecting for the first line of
+      code.
+      <blockchunk name="walk through text for regularization">
+        else if ((result == "") && (text[i] == '\n')) {
+          indentation = 0;
+        }
+      </blockchunk>
+      Now we have considered the case when <code>result</code> is empty, and only
+      encountering the newline and whitespace. Now, if a code character appears
+      we append it to <code>result</code>.
+      <blockchunk name="walk through text for regularization">
+        else if (result == "") {
+          result += text[i];
+        }
+      </blockchunk>
+      Now, <code>result</code> is not empty any more, and thus <code>indentation</code>
+      is fixed.
+      We continue appending new code character to <code>result</code> until we meet a
+      newline. In this case, we set <code>counting</code> to <code>true</code>, and
+      start counting whitespace. The counting ends when we encounter a code character.
+      In the end, do not forget to append this newline character to <code>result</code>.
+      <blockchunk name="walk through text for regularization">
+        else if (text[i] == '\n') {
+          whitespaceCount = 0;
+          counting = true;
+          result += text[i];
+        }
+      </blockchunk>
+      Then, we continue counting whitespace until we meet a code character.
+      <blockchunk name="walk through text for regularization">
+        else if ((counting == true) && (text[i] == ' ')) {
+          whitespaceCount++;
+        }
+      </blockchunk>
+      When we meet a character which is neither newline or whitespace, we find a
+      code character. Then, we stop counting, and append the correct number of
+      whitespace in front of the line of code.
+      (We also check that <code>whitespaceCount</code> is greater than <code>indentation</code>,
+      as it should be.)
+      In the end, we append the code character to <code>result</code>.
+      <blockchunk name="walk through text for regularization">
+        else if (counting == true) {
+          counting = false;
+          if (whitespaceCount < indentation) throw new Error("[regularizeCodeBlock] indentation error");
+          for (var j = 0; j < (whitespaceCount - indentation); j++) result += " ";
+          result += text[i];
+        }
+      </blockchunk>
+      We have dealt with the whitespace in front of a line of code. Before going
+      into the next line, all we need to do is appending new code characters to
+      <code>result</code>.
+      <blockchunk name="walk through text for regularization">
+        else {
+          result += text[i];
+        }
+      </blockchunk>
+      Up to now, we have solved the problem in front of each line of code. The
+      previous example is regularized to
+      <blockcode>
+        &lt;pre&gt;&lt;code&gt;<strong></strong>if<strong>\s</strong>(i<strong>\s</strong>=<strong>\s</strong>0)<strong>\s</strong>{<strong>\n\s\s</strong>i++;<strong>\n</strong>}<strong>\n</strong>&lt;/code&gt;&lt;/pre&gt;
+      </blockcode>
+      Notice that there is still an extra newline character in the end of the code
+      block. And there may be multiple ending newline characters in other examples.
+      To remove it, we iterate the result in backward direction and remove newlines
+      until encountering another character.
+      <blockchunk name="define regularization">
+        for (var i = (result.length - 1); i >= 0; i--) {
+          if (result[i] == '\n') {
+            result = result.substring(0, i);
+          }
+          else {
+            break;
+          }
+        }
+      </blockchunk>
+      Now, it becomes what we intend to write. It is safely to return the result.
+      <blockchunk name="define regularization">
+        return result;
+      </blockchunk>
+    <p>
+      We have implemented the function for regularizing code in block chunk. Other
+      code blocks in the HTML file wrapped in <code>&lt;pre&gt;&lt;code&gt;</code>
+      element also need regularization. So, we regularize both of them; the order
+      is irrelevant.
+      <blockchunk name="literate.js" append-newline>
+        function regularizeAll() {
+          <chunkref>regularize block chunk</chunkref>
+          <chunkref>regularize code in pre</chunkref>
+        }
+      </blockchunk>
+      wherein
+      <blockchunk name="regularize block chunk">
+        var divs = document.getElementsByTagName("div");
+        for (var i = 0; i < divs.length; i++) {
+          if (divs[i].getAttribute("class") == "chunk") {
+            divs[i].innerHTML = regularizeCodeBlock(divs[i].innerHTML);
+          }
+        }
+      </blockchunk>
+      and
+      <blockchunk name="regularize code in pre">
+        var pres = document.getElementsByTagName("pre");
+        for (var i = 0; i < pres.length; i++) {
+          var codes = pres[i].getElementsByTagName("code");
+          for (var j = 0; j < codes.length; j++) {
+            codes[j].innerHTML = regularizeCodeBlock(codes[j].innerHTML);
+          }
+        }
+      </blockchunk>
+    </p>
+
+    <h3 id="weave-all">Weave All</h3>
+    Now, we have had the all the functions for weaving. The order of weaving
+    chunk references and chunks is irrelevant. So, after regularization, we weave
+    chunk references and chunks one by one. The order of weaving is irrelevant.
+    Here, we weave chunk references first.
+    <blockchunk name="literate.js" append-newline>
+      function weaveAll() {
+        regularizeAll();
+        <chunkref>weave chunk references</chunkref>
+        <chunkref>weave chunks</chunkref>
+      }
+    </blockchunk>
+    Weaving chunk references is straight forward. We use a stupid loop to
+    implement it.
+    <blockchunk name="weave chunk references">
+      /* Weave chunk references */
+      var chunkRefs = document.getElementsByClassName("chunkref");
+      for (var i = 0; i < chunkRefs.length; i++) {
+        weaveChunkRef(chunkRefs[i]);
+      }
+    </blockchunk>
+    Weaving chunks is a little more complicated, since chunks can be inline
+    (a <code>span</code>) or block (a <code>div</code>).
+    <blockchunk name="weave chunks">
+      /* Weave chunks */
+      var chunks = document.getElementsByClassName("chunk");
+      for (var i = 0; i < chunks.length; i++) {
+        var chunk = chunks[i];
+        if (chunk.tagName == "SPAN") {
+          weaveInlineChunk(chunk);
+        }
+        else if (chunk.tagName == "DIV") {
+          weaveBlockChunk(chunk);
+        }
+        else {
+          throw new Error(`[weave] unknown chunk type: "${chunk.tagName}"`);
+        }
+      }
+    </blockchunk>
+
+    <h2>Tangling</h2>
+
+    <h3>Tangling Each Chunk</h3>
+    <p>
+      The main process of tangling is implemented by a function <code>_tangle</code>,
+      which accepts a string <code>chunkName</code> and returns a string for the
+      tangled code:
+      <blockchunk name="literate.js" append-newline>
+        function _tangle(chunkName) {
+          var code = "";
+          <chunkref>define _tangle</chunkref>
+          return code;
+        }
+      </blockchunk>
+    </p>
+    <p>
+      To define <code>_tangle</code>, we first collect all chunks that have the name
+      <code>chunkName</code>.
+      As stated in a <a href="#sharing-chunk-name">previous section</a>, there can be
+      multiple chunks with the same name.
+      <blockchunk name="define _tangle">
+        var chunks = document.getElementsByName(chunkName);
+        for (var i = 0; i < chunks.length; i++) {
+          var chunk = chunks[i];
+          if (chunk.getAttribute("class") != "chunk") continue;
+          <chunkref>tangle each chunk</chunkref>
+        }
+      </blockchunk>
+      For each chunk we find, we first unweave it. Since we will replace chunk
+      references in it with the corresponding tangled code, that is, we will
+      manipulate it in-place, we need to make a copy of it, a deep copy.
+      <blockchunk name="tangle each chunk">
+        var unwoven = unweave(chunk).cloneNode(true);
+      </blockchunk>
+      To find a chunk reference and replace it with the code in the referred chunk,
+      we must take care. Replacing the chunk reference with the corresponding code
+      will modify the children of the unwoven chunk, so using for-loop like
+      <blockcode>
+        for (int i = 0; i < unwoven.getElementsByClass("chunkref").length; i++)
+      </blockcode>
+      leads to mistakes. Instead, we employ a function that get the first child of
+      the unwoven chunk that represents a chunk reference. After replacement, the
+      first child of chunk reference will automatically turns to the next.
+      <blockchunk name="tangle each chunk">
+        /* Deal with chunk references */
+        var chunkRef = getFirstChildByClass(unwoven, "chunkref");
+        while (chunkRef != undefined) {
+          <chunkref>replace chunk reference</chunkref>
+          chunkRef = getFirstChildByClass(unwoven, "chunkref");
+        }
+      </blockchunk>
+      After replacing all chunk references within the unwoven chunk, we append it
+      to the <code>code</code> string. Besides, we also add a newline character
+      between different chunks that share the same chunk name.
+      <blockchunk name="tangle each chunk">
+        code += unwoven.innerHTML;
+        if (i < chunks.length - 1) code += "\n";
+      </blockchunk>
+      If the chunk has an <a href="#appending-newline">"append-newline" attribute</a>,
+      we append a newline character to the end of the code string according to its
+      value.
+      <blockchunk name="tangle each chunk">
+        /* Append newline */
+        var appendNewline = chunk.getAttribute("append-newline");
+      </blockchunk>
+      If there is no such attribute, <code>appendNewline</code> will be <code>null</code>.
+      And we set <code>appendNewline</code> to zero (append zero newline).
+      <blockchunk name="tangle each chunk">
+        if (appendNewline == null) {
+          appendNewline = 0;
+        }
+      </blockchunk>
+      And if it has no value (thus <code>appendNewline</code> is an empty string),
+      we append a single newline character.
+      <blockchunk name="tangle each chunk">
+        else if (appendNewline == "") {
+          appendNewline = 1;
+        }
+      </blockchunk>
+      Otherwise, we parse the value as an integer and append that many newline characters.
+      <blockchunk name="tangle each chunk">
+        else if (!isNaN(appendNewline)) {
+          appendNewline = parseInt(appendNewline);
+        }
+      </blockchunk>
+      Finally, if it has incorrect value, we raise an error.
+      <blockchunk name="tangle each chunk">
+        else {
+          throw new Error(`[_tangle] the value of append-newline must be an integer, but got "${appendNewline}"`);
+        }
+      </blockchunk>
+      After determine the value of <code>appendNewline</code>, we append that many
+      newline characters to the end of <code>code</code>.
+      <blockchunk name="tangle each chunk">
+        for (var j = 0; j < appendNewline; j++) code += "\n";
+      </blockchunk>
+    </p>
+    <p>
+      The implementation of <code>getFirstChildByClass</code> is straight forward.
+      <blockchunk name="literate.js" append-newline>
+        function getFirstChildByClass(node, className) {
+          for (var i = 0; i < node.children.length; i++) {
+            var child = node.children[i];
+            if (child.getAttribute("class") == className) {
+              return child;
+            }
+          }
+          return undefined;
+        }
+      </blockchunk>
+    </p>
+
+    <h3>Replacing Chunk Reference</h3>
+    <p>
+      For the replacement, we first get the referred chunk name. To distinguish
+      with the input <code>chunkName</code>, we call it <code>subChunkName</code>.
+      <blockchunk name="replace chunk reference">
+        var subChunkName = unweave(chunkRef).innerHTML;
+      </blockchunk>
+      Then, we get the tangled code by <strong>recursion!</strong>
+      Just like <code>subChunkName</code>, we call it <code>subCode</code>.
+      <blockchunk name="replace chunk reference">
+        var subCode = _tangle(subChunkName);
+      </blockchunk>
+      Very simple, isn't it? Remark that, if the referred chunk is a block chunk,
+      which involve multiple lines, then we have to indent the second, third, ...
+      lines of the <code>subCode</code> so that they share the same indentation.
+      (The first line has correct indentation, since it is written by you.) So,
+      for a block chunk, we have to determine the indentation and add it to each
+      line.
+      <blockchunk name="replace chunk reference">
+        /* Block chunk needs indentation */
+        if (chunk.tagName == "DIV") {
+          var indentation = getIndentation(chunkRef);
+          subCode = indent(subCode, indentation);
+        }
+      </blockchunk>
+      Everything is ready. Now we replace the chunk reference with the tangled
+      <code>subCode</code>. Since <code>replaceWith</code> method requires an
+      element (node) as input, we shall wrap the string <code>subCode</code> by
+      a <code>span</code> element.
+      <blockchunk name="replace chunk reference">
+        var subCodeNode = document.createElement("span");
+        subCodeNode.innerHTML = subCode;
+        chunkRef.replaceWith(subCodeNode);
+      </blockchunk>
+    </p>
+
+    <h3>Display in Browser</h3>
+    <p>
+      By clicking the "⟨chunk name⟩≡", function <code>tangle(chunkName)</code> is
+      triggered. We popup a new window to show the tangled code, thus:
+      <blockchunk name="literate.js" append-newline>
+        function tangle(chunkName) {
+          var code = _tangle(chunkName);
+          <chunkref>create HTML for the tangled code</chunkref>
+          <chunkref>display HTML in a new window</chunkref>
+        }
+      </blockchunk>
+      We use the following HTML to display the tangled code:
+      <blockchunk name="create HTML for the tangled code">
+        html = `&lt;!doctype html&gt;&lt;html&gt;` +
+               `&lt;head&gt;&lt;meta charset="utf-8"&gt;&lt;title&gt;${chunkName}&lt;/title&gt;` +
+               `&lt;style&gt;body { background-color: #c7edcc; }&lt;/style&gt;&lt;/head&gt;` +
+               `&lt;body&gt;&lt;pre&gt;&lt;code&gt;${code}&lt;/code&gt;&lt;/pre&gt;&lt;/body&gt;` +
+               `&lt;/html&gt;`;
+      </blockchunk>
+      This HTML is to be displayed in a new window:
+      <blockchunk name="display HTML in a new window">
+        var win = window.open('about:blank', '_blank');
+        win.document.write(html);
+        win.document.close();
+      </blockchunk>
+    </p>
+
+    <h3>Utility Functions</h3>
+    <p>
+      Before ending this section, we have to show how the functions <code>getIndentation</code>
+      and <code>indent</code> are implemented. They turns out to be simple.
+      The <code>getIndentation</code> function just returns the indentation
+      of the first line of the code. For example, in the following code,
+      <blockcode>
+        void main() {
+          &lt;chunkref&gt;say hello&lt;/chunkref&gt;;
+        }
+      </blockcode>
+      the chunk reference (the second line) has indentation 2. We have to figure
+      it out. To do so, we first extract all the string before the chunk reference,
+      which, in this example, is
+      <blockcode>
+        void main() {
+          (end here)
+      </blockcode>
+      This is done by the following function (<span class="comment">We follow
+        <a href="https://stackoverflow.com/a/72545166/1218716">this answer</a>.
+        This implementation, however, cannot deal with HTML tags properly.
+        Precisely, any HTML tag in the returned <code>textBefore</code> are excluded.
+        But since it is called for tangling, there is not HTML tags in the text
+        before the <code>node</code>, this implementation is still valid. Temporally,
+        I cannot figure out a better implementation.</chunkref>):
+      <blockchunk name="literate.js" append-newline>
+        function getTextBefore(node) {
+          const rangeBefore = document.createRange();
+          rangeBefore.setStart(node.parentNode.firstChild, 0);
+          rangeBefore.setEndBefore(node);
+          const textBefore = rangeBefore.toString();
+          return textBefore;
+        }
+      </blockchunk>
+      Then, directly, we count how many whitespace between the front of the chunk
+      chunk reference and beginning of the line.
+      <blockchunk name="literate.js" append-newline>
+        function getIndentation(chunkRef) {
+          var textBefore = getTextBefore(chunkRef);
+          var indentation = 0;
+          for (var i = textBefore.length - 1; i >= 0; i--) {
+            if (textBefore[i] == ' ') {
+              indentation++;
+            } else {
+              break;
+            }
+          }
+          return indentation;
+        }
+      </blockchunk>
+      The <code>indent</code> function is also straight forward. We simply prepend
+      <code>indentation</code> many whitespace before each line.
+      <blockchunk name="literate.js" append-newline>
+        function indent(text, indentation) {
+          var result = "";
+          for (var i = 0; i < text.length; i++) {
+            result += text[i];
+            if (text[i] == '\n') {
+              for (var j = 0; j < indentation; j++) result += ' ';
+            }
+          }
+          return result;
+        }
+      </blockchunk>
+    </p>
+
+    <h2>On Loading</h2>
+    <p>
+      Congratulations! You are in the end of this journey. Everything left is to
+      weave this HTML file when it is loaded in your browser.
+      (Recall that <a href="#regularize-code-block">regularization</a> has been
+      included as a part of <code><a href="#weave-all">weaveAll</a></code>.)
+      So, we shall write in <code>literate.js</code>:
+      <blockcode>
+        onload = weaveAll;
+      </blockcode>
+      But, what if you want to load more JavaScript functions while loading the
+      document? Who knows what you are going to do. So, it would be left to you,
+      the user, to determine what the <code>onload</code> should be like.
+    </p>
+    <p>
+      Up to now, we have completed the JavaScript code for literate programming.
+    </p>
+
+    <h2>Style</h2>
+
+    <p>
+      Wait a minute for adding some style to make the document pretty.
+      We use CSS to style the chunks and chunk references.
+    </p>
+
+    <h3>Inline Code</h3>
+    <p>
+      We add a thin border to inline code and pad it a little to make it stand out.
+      <blockchunk name="literate.css">
+        code {
+          border-style: dashed;
+          border-width: 0.1em;
+          padding-left: 0.3em;
+          padding-right: 0.3em;
+        }
+      </blockchunk>
+    </p>
+
+    <h3>Code Block</h3>
+    <p>
+      We put code block into a block, of course. The block is wrapped by a dashed
+      grey border. We also adjust the position of the code, to move it toward the
+      center of the border.
+      <blockchunk name="literate.css">
+        pre code {
+          display: block;
+          border-style: dashed;
+          border-color: grey;
+          border-width: medium;
+          overflow-x: auto;
+          margin: 1em;
+          padding-left: 3em;
+          padding-right: 3em;
+          padding-top: 1em;
+          padding-bottom: 1em;
+        }
+      </blockchunk>
+    </p>
+
+    <h3>Chunk Reference</h3>
+
+    <p>
+      For chunk reference, we delete the ugly underline of hyperlink, which links
+      to the first chunk with the referred name, and pad a little for making it
+      pretty. The original hyperlink color is too bright, we use dark red instead.
+      (Comparing with dark blue, red color is more distinguishable.)
+      <blockchunk name="literate.css">
+        .chunkref a {
+          color: darkred;
+          text-decoration: none;
+          padding-left: 0.1em;
+          padding-right: 0.1em;
+        }
+      </blockchunk>
+    </p>
+
+    <h3>Chunk</h3>
+
+    <p>
+      For each chunk, we add a narrow margin to make it appear a little isolated
+      from the content.
+      <blockchunk name="literate.css">
+        div.chunk {
+          margin-top: 1em;
+          margin-bottom: 1em;
+        }
+      </blockchunk>
+    </p>
+
+    <h4>Block Chunk</h4>
+    <p>
+      For block chunk, we make the head bold, indicating a definition (we always
+      make something bold when it is defined).
+      <blockchunk name="literate.css">
+        .block-chunk-head {
+          font-weight: bold;
+        }
+      </blockchunk>
+      For the link in the block chunk, we use the same style as chunk reference.
+      <blockchunk name="literate.css">
+        .block-chunk-head a {
+          text-decoration: none;
+          padding-left: 0.1em;
+          padding-right: 0.1em;
+          color: darkred;
+        }
+      </blockchunk>
+    </p>
+
+    <h3>Inline Chunk</h3>
+    <p>
+      For inline chunk, we simply make the head bold, indicating a definition,
+      and add a very narrow padding to isolate it from the content.
+      <blockchunk name="literate.css">
+        .inline-chunk-head {
+          font-weight: bold;
+          padding-left: 0.1em;
+          padding-right: 0.1em;
+        }
+      </blockchunk>
+    </p>
+
+  </body>
+</html>
