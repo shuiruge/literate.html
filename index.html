@@ -4,9 +4,9 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
 
-    <meta name="version" content="1.0"/>
+    <meta name="version" content="1.1"/>
     <meta name="author" content="shuiruge@hotmail.com"/>
-    <meta name="repository" content="https://github.com/shuiruge/literate.html"/>
+    <meta name="repository" content="https://github.com/shuiruge/literate.html/tree/v1"/>
 
     <title>Literate Programming in HTML</title>
 
@@ -197,13 +197,13 @@
       </code></pre>
     </p>
 
-    <h3 id="appending-newline">Appending Newline</h3>
+    <h3 id="prepending-newline">Prepending Newline</h3>
     <p>
-      Additionally, we can add a "append-newline" attribute to block chunk. If a
-      block chunk has this attribute, a newline character will be appended to the
+      Additionally, we can add a "prepend-newline" attribute to block chunk. If a
+      block chunk has this attribute, a newline character will be prepended to the
       end of the code block when it is tangled. For example:
       <pre><code>
-        &lt;div class="chunk" name="hello.c" append-newline&gt;
+        &lt;div class="chunk" name="hello.c"&gt;
           void say_hello () {
             printf("Hello, world!\n");
           }
@@ -211,7 +211,7 @@
       </code></pre>
       followed by
       <pre><code>
-        &lt;div class="chunk" name="hello.c"&gt;
+        &lt;div class="chunk" name="hello.c" prepend-newline&gt;
           void say_hello_again () {
             printf("Hello, world!\n");
           }
@@ -227,15 +227,13 @@
           printf("Hello, world!\n");
         }
       </code></pre>
-      There is an empty line at the end of the first function. It makes the code
-      much more readable. Otherwise, functions will be densely packed together.
-      The second block chunk does not have the "append-newline" attribute, so
-      there is no empty line at the end of the second function.
+      There is an empty line before the second function. It makes the code more
+      readable. Otherwise, functions will be densely packed together.
     </p>
     <p>
-      If "append-newline" is set to a number, multiple empty lines will be
-      appended. For example, <code>append-newline="2"</code> means appending two
-      newline characters.
+      If "prepend-newline" is set to a number, multiple empty lines will be
+      prepended. For example, <code>prepend-newline="2"</code> means prepending
+      two newline characters.
       This is the case for Python (see <a href="https://peps.python.org/pep-0008/#blank-lines">PEP8</a>).
     </p>
 
@@ -300,7 +298,7 @@
       and set it as hidden for not displaying in browser. Therefore, unweaving is
       nothing but extracting the element with class "unwoven" from the woven.
       (If not found, throw an error.)
-      <div class="chunk" name="literate.js" append-newline>
+      <div class="chunk" name="literate.js">
         function unweave(elem) {
           for (var i = 0; i < elem.children.length; i++) {
             var child = elem.children[i];
@@ -322,7 +320,7 @@
       within the original <code>&lt;span class="chunkref"&gt;</code> element.
       The hyperlink links to the <em>first</em> chunk with the referred chunk name.
       To do so, we have to add an <code>id</code> attribute to that first chunk.
-      <div class="chunk" name="literate.js" append-newline>
+      <div class="chunk" name="literate.js" prepend-newline>
         function weaveChunkRef(chunkRef) {
           <span class="chunkref">create unwoven span for weaving chunk reference</span>
           <span class="chunkref">create id and link to the first chunk</span>
@@ -386,12 +384,18 @@
         &lt;code&gt;... one line code ...&lt;/code&gt;
       </code></pre>
       within the original <code>&lt;span class="chunk"&gt;</code> element.
+      If the chunk is not the first of the series of chunks that share the
+      same chunk name, then we replace the <code>≡</code> by <code>+≡</code>.
       We add a <code>span</code> element for the head:
       <div class="chunk" name="create head for inline chunk">
         /* Create chunk head span */
         var chunkHead = document.createElement("span");
         chunkHead.setAttribute("class", "inline-chunk-head");
-        chunkHead.innerHTML = `⟨${chunk.getAttribute("name")}⟩≡`;
+        if (isFirstChunk(chunk)) {
+          chunkHead.innerHTML = `⟨${chunk.getAttribute("name")}⟩≡`;
+        } else {
+          chunkHead.innerHTML = `⟨${chunk.getAttribute("name")}⟩+≡`;
+        }
       </div>
       And the one line code is wrapped in a <code>code</code> element:
       <div class="chunk" name="create code for inline chunk">
@@ -401,7 +405,7 @@
       </div>
       Again, we shall append an unwoven span to the inline chunk. So, we simply
       follow the code in <code>weaveChunkRef</code> with a little adaptation.
-      <div class="chunk" name="literate.js" append-newline>
+      <div class="chunk" name="literate.js" prepend-newline>
         function weaveInlineChunk(chunk) {
           /* Create unwoven span */
           var unwoven = document.createElement("span");
@@ -418,6 +422,21 @@
           chunk.appendChild(chunkHead);
           chunk.appendChild(code);
           chunk.appendChild(unwoven);
+        }
+      </div>
+    </p>
+    <p>
+      The function <code>isFirstChunk</code> that tests if this chunk is the
+      first of the series is easy to implement. We fir
+      <div class="chunk" name="literate.js" prepend-newline>
+        function isFirstChunk(chunk) {
+          var chunkName = chunk.getAttribute("name");
+          var chunks = document.getElementsByClassName("chunk");
+          for (var i = 0; i < chunks.length; i++) {
+            var chunk2 = chunks[i];
+            if (chunk2.getAttribute("name") != chunkName) continue;
+            return (chunk === chunk2);
+          }
         }
       </div>
     </p>
@@ -453,11 +472,15 @@
         chunkHead.setAttribute("class", "block-chunk-head");
         chunkHead.appendChild(document.createTextNode("⟨"));
         chunkHead.appendChild(tangleLink);
-        chunkHead.appendChild(document.createTextNode("⟩≡"));
+        if (isFirstChunk(chunk)) {
+          chunkHead.appendChild(document.createTextNode("⟩≡"));
+        } else {
+          chunkHead.appendChild(document.createTextNode("⟩+≡"));
+        }
       </div>
       The unwoven now becomes a <code>div</code> element. So, the code for weaving
       block chunk simply an adaptation of <code>weaveInlineChunk</code>.
-      <div class="chunk" name="literate.js" append-newline>
+      <div class="chunk" name="literate.js" prepend-newline>
         function weaveBlockChunk(chunk) {
           /* Create unwoven span */
           var unwoven = document.createElement("div");
@@ -505,7 +528,7 @@
     </p>
     <p>
       We are to remove these extra characters.      
-      <div class="chunk" name="literate.js" append-newline>
+      <div class="chunk" name="literate.js" prepend-newline>
         function regularizeCodeBlock(text) {
           <span class="chunkref">define regularization</span>
         }
@@ -624,7 +647,7 @@
       code blocks in the HTML file wrapped in <code>&lt;pre&gt;&lt;code&gt;</code>
       element also need regularization. So, we regularize both of them; the order
       is irrelevant.
-      <div class="chunk" name="literate.js" append-newline>
+      <div class="chunk" name="literate.js" prepend-newline>
         function regularizeAll() {
           <span class="chunkref">regularize block chunk</span>
           <span class="chunkref">regularize code in pre</span>
@@ -656,7 +679,7 @@
     chunk references and chunks is irrelevant. So, after regularization, we weave
     chunk references and chunks one by one. The order of weaving is irrelevant.
     Here, we weave chunk references first.
-    <div class="chunk" name="literate.js" append-newline>
+    <div class="chunk" name="literate.js" prepend-newline>
       function weaveAll() {
         regularizeAll();
         <span class="chunkref">weave chunk references</span>
@@ -698,7 +721,7 @@
       The main process of tangling is implemented by a function <code>_tangle</code>,
       which accepts a string <code>chunkName</code> and returns a string for the
       tangled code:
-      <div class="chunk" name="literate.js" append-newline>
+      <div class="chunk" name="literate.js" prepend-newline>
         function _tangle(chunkName) {
           var code = "";
           <span class="chunkref">define _tangle</span>
@@ -719,6 +742,48 @@
           <span class="chunkref">tangle each chunk</span>
         }
       </div>
+    </p>
+    <p>
+      If the chunk has an <a href="#prepending-newline">"prepend-newline" attribute</a>,
+      we append a newline character to the end of the code string according to its
+      value.
+      <div class="chunk" name="tangle each chunk">
+        /* Prepend newline */
+        var prependNewline = chunk.getAttribute("prepend-newline");
+      </div>
+      If there is no such attribute, <code>prependNewline</code> will be <code>null</code>.
+      And we set <code>prependNewline</code> to zero (append zero newline).
+      <div class="chunk" name="tangle each chunk">
+        if (prependNewline == null) {
+          prependNewline = 0;
+        }
+      </div>
+      And if it has no value (thus <code>prependNewline</code> is an empty string),
+      we append a single newline character.
+      <div class="chunk" name="tangle each chunk">
+        else if (prependNewline == "") {
+          prependNewline = 1;
+        }
+      </div>
+      Otherwise, we parse the value as an integer and append that many newline characters.
+      <div class="chunk" name="tangle each chunk">
+        else if (!isNaN(prependNewline)) {
+          prependNewline = parseInt(prependNewline);
+        }
+      </div>
+      Finally, if it has incorrect value, we raise an error.
+      <div class="chunk" name="tangle each chunk">
+        else {
+          throw new Error(`[_tangle] the value of prepend-newline must be an integer, but got "${prependNewline}"`);
+        }
+      </div>
+      After determine the value of <code>prependNewline</code>, we append that many
+      newline characters to the end of <code>code</code>.
+      <div class="chunk" name="tangle each chunk">
+        for (var j = 0; j < prependNewline; j++) code += "\n";
+      </div>
+    </p>
+    <p>
       For each chunk we find, we first unweave it. Since we will replace chunk
       references in it with the corresponding tangled code, that is, we will
       manipulate it in-place, we need to make a copy of it, a deep copy.
@@ -749,48 +814,10 @@
         code += unwoven.innerHTML;
         if (i < chunks.length - 1) code += "\n";
       </div>
-      If the chunk has an <a href="#appending-newline">"append-newline" attribute</a>,
-      we append a newline character to the end of the code string according to its
-      value.
-      <div class="chunk" name="tangle each chunk">
-        /* Append newline */
-        var appendNewline = chunk.getAttribute("append-newline");
-      </div>
-      If there is no such attribute, <code>appendNewline</code> will be <code>null</code>.
-      And we set <code>appendNewline</code> to zero (append zero newline).
-      <div class="chunk" name="tangle each chunk">
-        if (appendNewline == null) {
-          appendNewline = 0;
-        }
-      </div>
-      And if it has no value (thus <code>appendNewline</code> is an empty string),
-      we append a single newline character.
-      <div class="chunk" name="tangle each chunk">
-        else if (appendNewline == "") {
-          appendNewline = 1;
-        }
-      </div>
-      Otherwise, we parse the value as an integer and append that many newline characters.
-      <div class="chunk" name="tangle each chunk">
-        else if (!isNaN(appendNewline)) {
-          appendNewline = parseInt(appendNewline);
-        }
-      </div>
-      Finally, if it has incorrect value, we raise an error.
-      <div class="chunk" name="tangle each chunk">
-        else {
-          throw new Error(`[_tangle] the value of append-newline must be an integer, but got "${appendNewline}"`);
-        }
-      </div>
-      After determine the value of <code>appendNewline</code>, we append that many
-      newline characters to the end of <code>code</code>.
-      <div class="chunk" name="tangle each chunk">
-        for (var j = 0; j < appendNewline; j++) code += "\n";
-      </div>
     </p>
     <p>
       The implementation of <code>getFirstChildByClass</code> is straight forward.
-      <div class="chunk" name="literate.js" append-newline>
+      <div class="chunk" name="literate.js" prepend-newline>
         function getFirstChildByClass(node, className) {
           for (var i = 0; i < node.children.length; i++) {
             var child = node.children[i];
@@ -843,7 +870,7 @@
     <p>
       By clicking the "⟨chunk name⟩≡", function <code>tangle(chunkName)</code> is
       triggered. We popup a new window to show the tangled code, thus:
-      <div class="chunk" name="literate.js" append-newline>
+      <div class="chunk" name="literate.js" prepend-newline>
         function tangle(chunkName) {
           var code = _tangle(chunkName);
           <span class="chunkref">create HTML for the tangled code</span>
@@ -891,7 +918,7 @@
         But since it is called for tangling, there is not HTML tags in the text
         before the <code>node</code>, this implementation is still valid. Temporally,
         I cannot figure out a better implementation.</span>):
-      <div class="chunk" name="literate.js" append-newline>
+      <div class="chunk" name="literate.js" prepend-newline>
         function getTextBefore(node) {
           const rangeBefore = document.createRange();
           rangeBefore.setStart(node.parentNode.firstChild, 0);
@@ -902,7 +929,7 @@
       </div>
       Then, directly, we count how many whitespace between the front of the chunk
       chunk reference and beginning of the line.
-      <div class="chunk" name="literate.js" append-newline>
+      <div class="chunk" name="literate.js" prepend-newline>
         function getIndentation(chunkRef) {
           var textBefore = getTextBefore(chunkRef);
           var indentation = 0;
@@ -918,7 +945,7 @@
       </div>
       The <code>indent</code> function is also straight forward. We simply prepend
       <code>indentation</code> many whitespace before each line.
-      <div class="chunk" name="literate.js" append-newline>
+      <div class="chunk" name="literate.js" prepend-newline>
         function indent(text, indentation) {
           var result = "";
           for (var i = 0; i < text.length; i++) {

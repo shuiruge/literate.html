@@ -47,7 +47,11 @@ function weaveInlineChunk(chunk) {
   /* Create chunk head span */
   var chunkHead = document.createElement("span");
   chunkHead.setAttribute("class", "inline-chunk-head");
-  chunkHead.innerHTML = `⟨${chunk.getAttribute("name")}⟩≡`;
+  if (isFirstChunk(chunk)) {
+    chunkHead.innerHTML = `⟨${chunk.getAttribute("name")}⟩≡`;
+  } else {
+    chunkHead.innerHTML = `⟨${chunk.getAttribute("name")}⟩+≡`;
+  }
 
   /* Create code */
   var code = document.createElement("code");
@@ -58,6 +62,16 @@ function weaveInlineChunk(chunk) {
   chunk.appendChild(chunkHead);
   chunk.appendChild(code);
   chunk.appendChild(unwoven);
+}
+
+function isFirstChunk(chunk) {
+  var chunkName = chunk.getAttribute("name");
+  var chunks = document.getElementsByClassName("chunk");
+  for (var i = 0; i < chunks.length; i++) {
+    var chunk2 = chunks[i];
+    if (chunk2.getAttribute("name") != chunkName) continue;
+    return (chunk === chunk2);
+  }
 }
 
 function weaveBlockChunk(chunk) {
@@ -77,7 +91,11 @@ function weaveBlockChunk(chunk) {
   chunkHead.setAttribute("class", "block-chunk-head");
   chunkHead.appendChild(document.createTextNode("⟨"));
   chunkHead.appendChild(tangleLink);
-  chunkHead.appendChild(document.createTextNode("⟩≡"));
+  if (isFirstChunk(chunk)) {
+    chunkHead.appendChild(document.createTextNode("⟩≡"));
+  } else {
+    chunkHead.appendChild(document.createTextNode("⟩+≡"));
+  }
 
   /* Create pre */
   var pre = document.createElement("pre");
@@ -181,6 +199,21 @@ function _tangle(chunkName) {
   for (var i = 0; i < chunks.length; i++) {
     var chunk = chunks[i];
     if (chunk.getAttribute("class") != "chunk") continue;
+    /* Prepend newline */
+    var prependNewline = chunk.getAttribute("prepend-newline");
+    if (prependNewline == null) {
+      prependNewline = 0;
+    }
+    else if (prependNewline == "") {
+      prependNewline = 1;
+    }
+    else if (!isNaN(prependNewline)) {
+      prependNewline = parseInt(prependNewline);
+    }
+    else {
+      throw new Error(`[_tangle] the value of prepend-newline must be an integer, but got "${prependNewline}"`);
+    }
+    for (var j = 0; j < prependNewline; j++) code += "\n";
     var unwoven = unweave(chunk).cloneNode(true);
     /* Deal with chunk references */
     var chunkRef = getFirstChildByClass(unwoven, "chunkref");
@@ -199,21 +232,6 @@ function _tangle(chunkName) {
     }
     code += unwoven.innerHTML;
     if (i < chunks.length - 1) code += "\n";
-    /* Append newline */
-    var appendNewline = chunk.getAttribute("append-newline");
-    if (appendNewline == null) {
-      appendNewline = 0;
-    }
-    else if (appendNewline == "") {
-      appendNewline = 1;
-    }
-    else if (!isNaN(appendNewline)) {
-      appendNewline = parseInt(appendNewline);
-    }
-    else {
-      throw new Error(`[_tangle] the value of append-newline must be an integer, but got "${appendNewline}"`);
-    }
-    for (var j = 0; j < appendNewline; j++) code += "\n";
   }
   return code;
 }
