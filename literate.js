@@ -135,7 +135,7 @@ function regularizeCodeBlock(text) {
     }
     else if (counting == true) {
       counting = false;
-      if (whitespaceCount < indentation) throw new Error("[regularizeCodeBlock] indentation error");
+      if (whitespaceCount < indentation) console.log("[regularizeCodeBlock] indentation problem in text:\n```\n" + text + "\n```");
       for (var j = 0; j < (whitespaceCount - indentation); j++) result += " ";
       result += text[i];
     }

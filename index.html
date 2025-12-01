@@ -606,11 +606,13 @@
       <div class="chunk" name="walk through text for regularization">
         else if (counting == true) {
           counting = false;
-          if (whitespaceCount < indentation) throw new Error("[regularizeCodeBlock] indentation error");
+          if (whitespaceCount < indentation) console.log("[regularizeCodeBlock] indentation problem in text:\n```\n" + text + "\n```");
           for (var j = 0; j < (whitespaceCount - indentation); j++) result += " ";
           result += text[i];
         }
       </div>
+      Here, we use a warning (in console) to indicate the problem in indentation
+      instead of throwing an error, which makes debugging much more difficult.
       We have dealt with the whitespace in front of a line of code. Before going
       into the next line, all we need to do is appending new code characters to
       <code>result</code>.
