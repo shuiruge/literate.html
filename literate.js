@@ -135,7 +135,7 @@ function regularizeCodeBlock(text) {
     }
     else if (counting == true) {
       counting = false;
-      if (whitespaceCount < indentation) console.log("[regularizeCodeBlock] indentation problem in text:\n```\n" + text + "\n```");
+      if (whitespaceCount < indentation) console.log(`[regularizeCodeBlock] indentation problem in text:\n---\n${text}\n---\nThe indentation in the first line is ${indentation}, but a smaller indentation is found in other lines. Please check for this, otherwise the woven would be incorrect.`);
       for (var j = 0; j < (whitespaceCount - indentation); j++) result += " ";
       result += text[i];
     }
