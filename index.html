@@ -4,7 +4,7 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
 
-    <meta name="version" content="1.1"/>
+    <meta name="version" content="1.2"/>
     <meta name="author" content="shuiruge@hotmail.com"/>
     <meta name="repository" content="https://github.com/shuiruge/literate.html/tree/v1"/>
 
@@ -28,7 +28,7 @@
     <script type="text/javascript" src="literate.js"></script>
 
     <script>
-      window.onload = weaveAll;
+      window.onload = weave;
     </script>
   </head>
 
@@ -142,8 +142,8 @@
       The only issue is that some languages, such as HTML itself and C++, heavily
       use characters "<" and ">" in the same way as HTML, such as
       <code>vector&lt;string&gt;</code> in C++. We have to escape these "tag
-      characters". But this issue is not overall. For example, the "<" character
-      in <code>x < 0</code> is not "tag-like", thus there is no need to escape.
+      characters". But this issue is not overall. For example, the "&lt;" character
+      in <code>x &lt; 0</code> is not "tag-like", thus there is no need to escape.
     </p>
 
     <h2>Chunk in HTML</h2>
@@ -263,7 +263,7 @@
       Then, remember to weave when onload. For example,
       <pre><code>
         &lt;script&gt;
-          window.onload = weaveAll;
+          window.onload = weave;
         &lt;/script&gt;
       </code></pre>
     </p>
@@ -300,7 +300,7 @@
       (If not found, throw an error.)
       <div class="chunk" name="literate.js">
         function unweave(elem) {
-          for (var i = 0; i < elem.children.length; i++) {
+          for (var i = 0; i &lt; elem.children.length; i++) {
             var child = elem.children[i];
             if (child.getAttribute("class") == "unwoven") {
               return child;
@@ -345,7 +345,7 @@
         var id = null;
         var chunkName = chunkRef.innerHTML;
         var chunks = document.getElementsByName(chunkName);
-        for (var i = 0; i < chunks.length; i++) {
+        for (var i = 0; i &lt; chunks.length; i++) {
           if (chunks[i].getAttribute("class") != "chunk") continue;
           id = chunkName.replace(" ", "-");
           chunks[i].setAttribute("id", id);
@@ -432,7 +432,7 @@
         function isFirstChunk(chunk) {
           var chunkName = chunk.getAttribute("name");
           var chunks = document.getElementsByClassName("chunk");
-          for (var i = 0; i < chunks.length; i++) {
+          for (var i = 0; i &lt; chunks.length; i++) {
             var chunk2 = chunks[i];
             if (chunk2.getAttribute("name") != chunkName) continue;
             return (chunk === chunk2);
@@ -548,7 +548,7 @@
         var indentation = 0;
         var whitespaceCount = 0;
         var counting = false;
-        for (var i = 0; i < text.length; i++) {
+        for (var i = 0; i &lt; text.length; i++) {
           <span class="chunkref">walk through text for regularization</span>
         }
       </div>
@@ -606,8 +606,8 @@
       <div class="chunk" name="walk through text for regularization">
         else if (counting == true) {
           counting = false;
-          if (whitespaceCount < indentation) console.log(`[regularizeCodeBlock] indentation problem in text:\n---\n${text}\n---\nThe indentation in the first line is ${indentation}, but a smaller indentation is found in other lines. Please check for this, otherwise the woven would be incorrect.`);
-          for (var j = 0; j < (whitespaceCount - indentation); j++) result += " ";
+          if (whitespaceCount &lt; indentation) console.log(`[regularizeCodeBlock] indentation problem in text:\n---\n${text}\n---\nThe indentation in the first line is ${indentation}, but a smaller indentation is found in other lines. Please check for this, otherwise the woven would be incorrect.`);
+          for (var j = 0; j &lt; (whitespaceCount - indentation); j++) result += " ";
           result += text[i];
         }
       </div>
@@ -650,7 +650,7 @@
       element also need regularization. So, we regularize both of them; the order
       is irrelevant.
       <div class="chunk" name="literate.js" prepend-newline>
-        function regularizeAll() {
+        function regularizeChunksAndCodesInBlock() {
           <span class="chunkref">regularize block chunk</span>
           <span class="chunkref">regularize code in pre</span>
         }
@@ -658,7 +658,7 @@
       wherein
       <div class="chunk" name="regularize block chunk">
         var divs = document.getElementsByTagName("div");
-        for (var i = 0; i < divs.length; i++) {
+        for (var i = 0; i &lt; divs.length; i++) {
           if (divs[i].getAttribute("class") == "chunk") {
             divs[i].innerHTML = regularizeCodeBlock(divs[i].innerHTML);
           }
@@ -667,23 +667,23 @@
       and
       <div class="chunk" name="regularize code in pre">
         var pres = document.getElementsByTagName("pre");
-        for (var i = 0; i < pres.length; i++) {
+        for (var i = 0; i &lt; pres.length; i++) {
           var codes = pres[i].getElementsByTagName("code");
-          for (var j = 0; j < codes.length; j++) {
+          for (var j = 0; j &lt; codes.length; j++) {
             codes[j].innerHTML = regularizeCodeBlock(codes[j].innerHTML);
           }
         }
       </div>
     </p>
 
-    <h3 id="weave-all">Weave All</h3>
+    <h3 id="weave-everything-together">Weave Everything Together</h3>
     Now, we have had the all the functions for weaving. The order of weaving
     chunk references and chunks is irrelevant. So, after regularization, we weave
     chunk references and chunks one by one. The order of weaving is irrelevant.
     Here, we weave chunk references first.
     <div class="chunk" name="literate.js" prepend-newline>
-      function weaveAll() {
-        regularizeAll();
+      function weave() {
+        regularizeChunksAndCodesInBlock();
         <span class="chunkref">weave chunk references</span>
         <span class="chunkref">weave chunks</span>
       }
@@ -693,7 +693,7 @@
     <div class="chunk" name="weave chunk references">
       /* Weave chunk references */
       var chunkRefs = document.getElementsByClassName("chunkref");
-      for (var i = 0; i < chunkRefs.length; i++) {
+      for (var i = 0; i &lt; chunkRefs.length; i++) {
         weaveChunkRef(chunkRefs[i]);
       }
     </div>
@@ -702,7 +702,7 @@
     <div class="chunk" name="weave chunks">
       /* Weave chunks */
       var chunks = document.getElementsByClassName("chunk");
-      for (var i = 0; i < chunks.length; i++) {
+      for (var i = 0; i &lt; chunks.length; i++) {
         var chunk = chunks[i];
         if (chunk.tagName == "SPAN") {
           weaveInlineChunk(chunk);
@@ -738,7 +738,7 @@
       multiple chunks with the same name.
       <div class="chunk" name="define _tangle">
         var chunks = document.getElementsByName(chunkName);
-        for (var i = 0; i < chunks.length; i++) {
+        for (var i = 0; i &lt; chunks.length; i++) {
           var chunk = chunks[i];
           if (chunk.getAttribute("class") != "chunk") continue;
           <span class="chunkref">tangle each chunk</span>
@@ -782,7 +782,7 @@
       After determine the value of <code>prependNewline</code>, we append that many
       newline characters to the end of <code>code</code>.
       <div class="chunk" name="tangle each chunk">
-        for (var j = 0; j < prependNewline; j++) code += "\n";
+        for (var j = 0; j &lt; prependNewline; j++) code += "\n";
       </div>
     </p>
     <p>
@@ -796,7 +796,7 @@
       we must take care. Replacing the chunk reference with the corresponding code
       will modify the children of the unwoven chunk, so using for-loop like
       <pre><code>
-        for (int i = 0; i < unwoven.getElementsByClass("chunkref").length; i++)
+        for (int i = 0; i &lt; unwoven.getElementsByClass("chunkref").length; i++)
       </code></pre>
       leads to mistakes. Instead, we employ a function that get the first child of
       the unwoven chunk that represents a chunk reference. After replacement, the
@@ -814,14 +814,14 @@
       between different chunks that share the same chunk name.
       <div class="chunk" name="tangle each chunk">
         code += unwoven.innerHTML;
-        if (i < chunks.length - 1) code += "\n";
+        if (i &lt; chunks.length - 1) code += "\n";
       </div>
     </p>
     <p>
       The implementation of <code>getFirstChildByClass</code> is straight forward.
       <div class="chunk" name="literate.js" prepend-newline>
         function getFirstChildByClass(node, className) {
-          for (var i = 0; i < node.children.length; i++) {
+          for (var i = 0; i &lt; node.children.length; i++) {
             var child = node.children[i];
             if (child.getAttribute("class") == className) {
               return child;
@@ -950,10 +950,10 @@
       <div class="chunk" name="literate.js" prepend-newline>
         function indent(text, indentation) {
           var result = "";
-          for (var i = 0; i < text.length; i++) {
+          for (var i = 0; i &lt; text.length; i++) {
             result += text[i];
             if (text[i] == '\n') {
-              for (var j = 0; j < indentation; j++) result += ' ';
+              for (var j = 0; j &lt; indentation; j++) result += ' ';
             }
           }
           return result;
@@ -966,10 +966,10 @@
       Congratulations! You are in the end of this journey. Everything left is to
       weave this HTML file when it is loaded in your browser.
       (Recall that <a href="#regularize-code-block">regularization</a> has been
-      included as a part of <code><a href="#weave-all">weaveAll</a></code>.)
+      included as a part of <code><a href="#weave-everything-together">weave</a></code>.)
       So, we shall write in <code>literate.js</code>:
       <pre><code>
-        onload = weaveAll;
+        onload = weave;
       </code></pre>
       But, what if you want to load more JavaScript functions while loading the
       document? Who knows what you are going to do. So, it would be left to you,

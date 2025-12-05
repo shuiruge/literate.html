@@ -154,7 +154,7 @@ function regularizeCodeBlock(text) {
   return result;
 }
 
-function regularizeAll() {
+function regularizeChunksAndCodesInBlock() {
   var divs = document.getElementsByTagName("div");
   for (var i = 0; i < divs.length; i++) {
     if (divs[i].getAttribute("class") == "chunk") {
@@ -170,8 +170,8 @@ function regularizeAll() {
   }
 }
 
-function weaveAll() {
-  regularizeAll();
+function weave() {
+  regularizeChunksAndCodesInBlock();
   /* Weave chunk references */
   var chunkRefs = document.getElementsByClassName("chunkref");
   for (var i = 0; i < chunkRefs.length; i++) {
