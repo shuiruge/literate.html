@@ -4,7 +4,7 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
 
-    <meta name="version" content="1.2"/>
+    <meta name="version" content="1.2.1"/>
     <meta name="author" content="shuiruge@hotmail.com"/>
     <meta name="repository" content="https://github.com/shuiruge/literate.html/tree/v1"/>
 
@@ -509,20 +509,20 @@
     <p>
       A widely known problem is the whitespace before the "code block". Browser
       will display these whitespace, which is not what we intend. To solve this,
-      we have to regularize the code block wrapped by a <code>pre</code> element.
-      For example, code block like this:
+      we have to regularize the code block wrapped by <code>pre-code</code> tag
+      combinition. For example, code block like:
       <pre><code>
-        &lt;pre&gt;
+        &lt;pre&gt;&lt;code&gt;
           if (i = 0) {
             i++;
           }
-        &lt;/pre&gt;
+        &lt;/code&gt;&lt;/pre&gt;
       </code></pre>
       has the raw text (<code>\n</code> for newline and <code>\s</code> for whitespace):
       <pre><code>
         &lt;pre&gt;&lt;code&gt;<strong>\n\s\s\s\s\s\s</strong>if<strong>\s</strong>(i<strong>\s</strong>=<strong>\s</strong>0)<strong>\s</strong>{<strong>\n\s\s\s\s\s\s\s\s</strong>i++;<strong>\n\s\s\s\s\s\s</strong>}<strong>\n\s\s\s\s</strong>&lt;/code&gt;&lt;/pre&gt;
       </code></pre>
-      There are six extra whitespace in front of each line, and four whitespace
+      There are six extra whitespaces in front of each line, and four whitespaces
       after the while code block. There is also an extra newline in front of the
       code block.
     </p>
