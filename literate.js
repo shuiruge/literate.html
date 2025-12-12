@@ -250,7 +250,7 @@ function tangle(chunkName) {
   var code = _tangle(chunkName);
   html = `<!doctype html><html>` +
          `<head><meta charset="utf-8"><title>${chunkName}</title>` +
-         `<style>body { background-color: #c7edcc; }</style></head>` +
+         `<style>body { background-color: #f5f5d5; }</style></head>` +
          `<body><pre><code>${code}</code></pre></body>` +
          `</html>`;
   var win = window.open('about:blank', '_blank');
