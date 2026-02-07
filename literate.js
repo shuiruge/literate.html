@@ -24,7 +24,7 @@ function weaveChunkRef(chunkRef) {
     chunks[i].setAttribute("id", id);
     break;
   }
-  if (id == null) throw new Error(`[weaveChunkRef] no chunk found for "${chunkName}"`);
+  if (id == null) console.log(`[weaveChunkRef] no chunk found for "${chunkName}"`);
   var link = document.createElement("a");
   link.setAttribute("href", `#${id}`);
   link.setAttribute("class", "chunkref-link");

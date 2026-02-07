@@ -353,9 +353,9 @@
         }
       </div>
       If there is no chunk with the referred chunk name, there must be something
-      wrong, we raise an error.
+      wrong, we raise a warning.
       <div class="chunk" name="create id and link to the first chunk">
-        if (id == null) throw new Error(`[weaveChunkRef] no chunk found for "${chunkName}"`);
+        if (id == null) console.log(`[weaveChunkRef] no chunk found for "${chunkName}"`);
       </div>
       Then, we create the link to the first chunk.
       <div class="chunk" name="create id and link to the first chunk">
